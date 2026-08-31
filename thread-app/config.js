@@ -5,6 +5,6 @@
 // schema.sql in this repo turns on. Never put the service_role key here.
 
 window.THREAD_CONFIG = {
-  SUPABASE_URL: 'https://YOUR-PROJECT-ref.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR-ANON-KEY'
+  SUPABASE_URL: 'https://dwsyadegvzewditivcym.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c3lhZGVndnpld2RpdGl2Y3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTEsImV4cCI6MjEwMzc4NzU1MX0.RpDH53qiVQPaOSi8EgH7jJoONE72uxGPQp8rLi3ZJtU'
 };
