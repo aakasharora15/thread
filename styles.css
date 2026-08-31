@@ -17,6 +17,7 @@
     --body: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
   html, body { margin: 0; padding: 0; background: var(--ground); color: var(--ink); font-family: var(--body);
     -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }

@@ -6,5 +6,11 @@
 
 window.THREAD_CONFIG = {
   SUPABASE_URL: 'https://YOUR-PROJECT-ref.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR-ANON-KEY'
+  SUPABASE_ANON_KEY: 'YOUR-ANON-KEY',
+
+  // Testing switch. While this is true the sign in screen never appears: the
+  // game opens straight onto the home screen and saves to this browser only,
+  // with nothing sent to or read from the server. Set it to false to put the
+  // sign in screen back and turn cloud saving on again.
+  SKIP_LOGIN: true
 };

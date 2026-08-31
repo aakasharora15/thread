@@ -5,8 +5,8 @@
 // Merging is monotonic (see mergeSaves in app.js), so two devices converge
 // instead of one overwriting the other.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
+// Loaded on demand, further down, so that a copy running with SKIP_LOGIN on
+// needs no network at all and cannot be held up by a blocked CDN.
 const cfg = window.THREAD_CONFIG || {};
 const gate = document.getElementById('gate');
 const msg = document.getElementById('gMsg');
@@ -16,6 +16,7 @@ const goBtn = document.getElementById('gGo');
 const swapBtn = document.getElementById('gSwap');
 const swapText = document.getElementById('gSwapText');
 const whoEl = document.getElementById('who');
+const signOutBtn = document.getElementById('signOut');
 
 let mode = 'in';                 // 'in' = sign in, 'up' = create account
 let supabase = null;
@@ -138,7 +139,8 @@ passEl.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
 emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') passEl.focus(); });
 swapBtn.addEventListener('click', () => { mode = mode === 'up' ? 'in' : 'up'; say(''); paint(); });
 
-document.getElementById('signOut').addEventListener('click', async () => {
+signOutBtn.addEventListener('click', async () => {
+  if (!supabase) return;                    // nothing to sign out of in test mode
   clearTimeout(pushTimer);
   await flush();
   await supabase.auth.signOut();
@@ -177,12 +179,25 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') flush();
 });
 
+// ---------- test mode ----------
+// No account, no server: open the game and let app.js save to this browser.
+// The gate stays in the markup, it is simply never shown.
+async function startWithoutSignIn() {
+  gate.classList.add('done');
+  signOutBtn.hidden = true;
+  whoEl.textContent = 'Test mode, saved on this device only';
+  await window.Thread.boot();
+}
+
 // ---------- start ----------
 paint();
-if (!configured()) {
+if (cfg.SKIP_LOGIN) {
+  await startWithoutSignIn();
+} else if (!configured()) {
   say('This copy has not been connected to a Supabase project yet. Fill in config.js.');
   goBtn.disabled = true;
 } else {
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true }
   });
