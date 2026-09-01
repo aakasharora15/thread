@@ -1,4 +1,5 @@
-(function () {
+import { Audio } from './audio.js';
+import { Toast } from './toast.js';
   "use strict";
   var L = window.ThreadLogic;
   var mkLane = L.mkLane, mergeSaves = L.mergeSaves;
@@ -88,6 +89,7 @@
   var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
+  Audio.init(() => save);
 
 
   // ---------- storage ----------
@@ -278,7 +280,7 @@
     S.over = true; clearInterval(timer);
     clearResume();
     save.hard.streak = 0; persist();
-    Snd.fail();
+    Audio.fail();
     overlay('Out of time', 'The board is still here. Retries are free and unlimited.', -1);
   }
 
@@ -359,15 +361,15 @@
     if (LANE[S.lane].guard) {
       var cpTo = S.board.cp[to];
       if (cpTo !== 0 && cpTo !== nextNumber()) {
-        say('Number ' + nextNumber() + ' comes first.'); Snd.blocked(); return false;
+        say('Number ' + nextNumber() + ' comes first.'); Audio.blocked(); return false;
       }
       var trial = S.line.concat([to]);
-      if (!feasible(trial)) { say('That would strand a square. Try another way.'); Snd.blocked(); return false; }
+      if (!feasible(trial)) { say('That would strand a square. Try another way.'); Audio.blocked(); return false; }
     }
     var prev = S.line[S.line.length - 1];
     S.line.push(to); S.added++;
     flowTo(prev, false);
-    if (S.board.cp[to]) Snd.mark(S.board.cp[to]); else Snd.step(S.line.length);
+    if (S.board.cp[to]) Audio.mark(S.board.cp[to]); else Audio.step(S.line.length);
     afterMove();
     return true;
   }
@@ -378,7 +380,7 @@
     if (!byDrag && S.undosLeft !== Infinity) S.undosLeft--;
     var gone = S.line.pop();
     flowTo(gone, true);
-    Snd.erase();
+    Audio.erase();
     afterMove();
   }
   function badges() {
@@ -415,7 +417,7 @@
     S.flow = null;
     clearResume();
     if (S.lane === 'hard') { save.hard.streak = 0; persist(); }
-    Snd.fail();
+    Audio.fail();
     draw();
     overlay('Stuck', why + ' Rub out and try again, as often as you like.', -1);
   }
@@ -459,7 +461,7 @@
       ? 'Clean solve in ' + fmt(S.elapsed) + '. Target was ' + fmt(par) + '.'
       : 'Solved in ' + fmt(S.elapsed) + ', with ' + (S.added - (S.board.cells - 1)) + ' extra squares drawn. A solve with nothing rubbed out earns the second dot.';
     haptic([15, 50, 15]);
-    Snd.win();
+    Audio.win();
     draw(true);
     setTimeout(function () { overlay('Solved', body, stars); }, 520);
   }
@@ -755,7 +757,7 @@
   function onUp() { if (S) S.dragging = false; }
 
   // ---------- screens ----------
-  function show(id) {
+  function show(id) { applyCosmetics();
     const update = () => {
       ['home', 'play', 'profile'].forEach(function (k) { 
         const el = document.getElementById(k);
@@ -858,129 +860,7 @@
   // ---------- sound ----------
   // Everything is synthesised in the browser, so the file stays self-contained
   // and works offline once it has been sent on.
-  var Snd = (function () {
-    var ctx = null, bus = null, musicBus = null, sfxBus = null, echo = null;
-    var playing = false, loop = null, nextNote = 0, step = 0;
-    var SCALE = [440, 493.88, 554.37, 659.25, 739.99, 880, 987.77];
-    var CHORDS = [
-      [110.00, 164.81, 277.18],
-      [92.50, 138.59, 220.00],
-      [73.42, 110.00, 185.00],
-      [82.41, 123.47, 207.65]
-    ];
-    var MEL = [0, -1, 2, -1, 4, -1, 3, -1, 2, -1, 5, -1, 3, -1, 1, -1];
-    var BEAT = 0.42;
-
-    function ensure() {
-      if (ctx) return ctx;
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      try { ctx = new AC(); } catch (e) { ctx = null; return null; }
-      bus = ctx.createGain(); bus.gain.value = 0.9; bus.connect(ctx.destination);
-      echo = ctx.createDelay(1.0); echo.delayTime.value = 0.33;
-      var fb = ctx.createGain(); fb.gain.value = 0.26;
-      var soft = ctx.createBiquadFilter(); soft.type = 'lowpass'; soft.frequency.value = 1900;
-      echo.connect(soft); soft.connect(fb); fb.connect(echo); soft.connect(bus);
-      musicBus = ctx.createGain(); musicBus.gain.value = 0.0001;
-      musicBus.connect(bus); musicBus.connect(echo);
-      sfxBus = ctx.createGain(); sfxBus.gain.value = 0.55;
-      sfxBus.connect(bus); sfxBus.connect(echo);
-      return ctx;
-    }
-    function blip(dest, freq, at, dur, peak, wave) {
-      var o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = wave || 'sine';
-      o.frequency.setValueAtTime(freq, at);
-      g.gain.setValueAtTime(0.0001, at);
-      g.gain.exponentialRampToValueAtTime(peak, at + Math.min(0.06, dur * 0.35));
-      g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-      o.connect(g); g.connect(dest);
-      o.start(at); o.stop(at + dur + 0.06);
-    }
-    function pad(freqs, at, dur) {
-      freqs.forEach(function (f, i) {
-        var o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
-        o.type = i === 0 ? 'sine' : 'triangle';
-        o.frequency.setValueAtTime(f, at);
-        o.detune.setValueAtTime(i * 5 - 5, at);
-        lp.type = 'lowpass'; lp.frequency.setValueAtTime(820, at);
-        g.gain.setValueAtTime(0.0001, at);
-        g.gain.linearRampToValueAtTime(0.075, at + 1.5);
-        g.gain.linearRampToValueAtTime(0.0001, at + dur);
-        o.connect(lp); lp.connect(g); g.connect(musicBus);
-        o.start(at); o.stop(at + dur + 0.1);
-      });
-    }
-    function schedule() {
-      if (!ctx) return;
-      while (nextNote < ctx.currentTime + 0.35) {
-        var bar = Math.floor(step / 16) % 4, pos = step % 16;
-        if (pos === 0) pad(CHORDS[bar], nextNote, BEAT * 16);
-        if (pos % 4 === 0) blip(musicBus, CHORDS[bar][0], nextNote, 0.6, 0.07, 'sine');
-        var n = MEL[pos];
-        if (n >= 0 && step % 64 < 48) blip(musicBus, SCALE[(n + bar) % SCALE.length], nextNote, 0.95, 0.045, 'triangle');
-        nextNote += BEAT; step++;
-      }
-    }
-    function on() { return save.sound !== false; }
-    function wake() {
-      if (!ensure()) return null;
-      if (ctx.state === 'suspended') ctx.resume();
-      return ctx;
-    }
-    return {
-      start: function () {
-        if (!on() || !wake() || playing) return;
-        playing = true;
-        nextNote = ctx.currentTime + 0.15; 
-        musicBus.gain.cancelScheduledValues(ctx.currentTime);
-        musicBus.gain.setValueAtTime(0.0001, ctx.currentTime);
-        musicBus.gain.linearRampToValueAtTime(0.42, ctx.currentTime + 2.2);
-        schedule();
-        loop = setInterval(schedule, 70);
-      },
-      stop: function () {
-        if (!ctx || !playing) return;
-        playing = false;
-        clearInterval(loop);
-        musicBus.gain.cancelScheduledValues(ctx.currentTime);
-        musicBus.gain.setValueAtTime(musicBus.gain.value, ctx.currentTime);
-        musicBus.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
-      },
-      playing: function () { return playing; },
-      step: function (k) {
-        if (!on() || !wake()) return;
-        blip(sfxBus, SCALE[k % 5] * 2, ctx.currentTime, 0.13, 0.13, 'triangle');
-      },
-      erase: function () {
-        if (!on() || !wake()) return;
-        blip(sfxBus, 300, ctx.currentTime, 0.11, 0.09, 'sine');
-      },
-      mark: function (n) {
-        if (!on() || !wake()) return;
-        var t = ctx.currentTime;
-        blip(sfxBus, SCALE[n % 5] * 2, t, 0.2, 0.16, 'sine');
-        blip(sfxBus, SCALE[(n + 2) % 5] * 4, t + 0.09, 0.28, 0.1, 'sine');
-      },
-      win: function () {
-        if (!on() || !wake()) return;
-        var t = ctx.currentTime;
-        [0, 2, 4, 5].forEach(function (k, i) {
-          blip(sfxBus, SCALE[k] * 2, t + i * 0.11, 0.5, 0.15, 'triangle');
-        });
-      },
-      fail: function () {
-        if (!on() || !wake()) return;
-        var t = ctx.currentTime;
-        blip(sfxBus, 330, t, 0.3, 0.12, 'sine');
-        blip(sfxBus, 247, t + 0.16, 0.5, 0.1, 'sine');
-      },
-      blocked: function () {
-        if (!on() || !wake()) return;
-        blip(sfxBus, 180, ctx.currentTime, 0.09, 0.08, 'square');
-      }
-    };
-  })();
+  
 
   function soundUI() {
     var on = save.sound !== false;
@@ -995,7 +875,7 @@
   function toggleSound() {
     save.sound = save.sound === false;
     persist(); soundUI();
-    if (save.sound) Snd.start(); else Snd.stop();
+    if (save.sound) Audio.start(); else Audio.stop();
   }
 
   // ---------- wiring ----------
@@ -1017,7 +897,7 @@
   document.getElementById('sndPlay').addEventListener('click', toggleSound);
   document.addEventListener('pointerdown', function first() {
     document.removeEventListener('pointerdown', first);
-    if (save.sound !== false) Snd.start();
+    if (save.sound !== false) Audio.start();
   }, { passive: true });
 
   document.getElementById('cta').addEventListener('click', function () {
@@ -1101,10 +981,10 @@
   window.addEventListener('pagehide', function () { saveResume(true); persist(); });
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'hidden') {
-      pauseClock(); saveResume(true); persist(); Snd.stop();
+      pauseClock(); saveResume(true); persist(); Audio.stop();
     } else {
       resumeClock();
-      if (save.sound !== false) Snd.start();
+      if (save.sound !== false) Audio.start();
     }
   });
 
@@ -1138,13 +1018,14 @@
         resume = remoteResume;
         store.set(RESUME_KEY, JSON.stringify(resume));
       }
+      applyCosmetics();
       if (!S) { soundUI(); worldPinned = false; renderMap(); }
     },
     signedOut: function () {
       cloud = null;
       clearInterval(timer);
       S = null;
-      Snd.stop();
+      Audio.stop();
       save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
       resume = null;
       store.set(SAVE_KEY, '');
@@ -1158,7 +1039,34 @@
       const countStars = (st) => Object.values(st.stars || {}).reduce((a, b) => a + b, 0);
       const countSolved = (st) => Object.keys(st.stars || {}).length;
       
-      stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
+      
+      // Update cosmetics UI
+      if (!save.cosmetics) save.cosmetics = { color: 'default', audio: 'default' };
+      const totalStars = ['easy', 'medium', 'hard'].reduce((acc, lane) => acc + countStars(save[lane]), 0);
+      
+      const themePink = document.getElementById('themePink');
+      const themeGold = document.getElementById('themeGold');
+      const audio8Bit = document.getElementById('audio8Bit');
+      
+      if (themePink) themePink.style.display = totalStars >= 20 ? 'block' : 'none';
+      if (themeGold) themeGold.style.display = totalStars >= 50 ? 'block' : 'none';
+      if (audio8Bit) audio8Bit.style.display = totalStars >= 100 ? 'block' : 'none';
+      
+      document.querySelectorAll('#profRewards button').forEach(b => {
+        b.style.opacity = '0.5';
+        if (b.dataset.color === save.cosmetics.color) b.style.opacity = '1';
+        if (b.dataset.audio === save.cosmetics.audio) b.style.opacity = '1';
+        
+        b.onclick = function() {
+          if (this.dataset.color) save.cosmetics.color = this.dataset.color;
+          if (this.dataset.audio) save.cosmetics.audio = this.dataset.audio;
+          persist();
+          applyCosmetics();
+          if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
+        };
+      });
+      
+stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
         const data = save[lane];
         const stars = countStars(data);
         const solved = countSolved(data);
@@ -1227,22 +1135,3 @@
   }
   if (sparkCtx) requestAnimationFrame(drawSparks);
 
-})();
-
-
-// Centralized error handling utility
-window.handleError = function(msg) {
-  var el = document.getElementById('syncToast');
-  if (el) {
-    el.textContent = msg;
-    el.style.backgroundColor = 'var(--thread)'; // Red for error
-    el.style.opacity = '1';
-    setTimeout(function() {
-      el.style.opacity = '0';
-      setTimeout(function() {
-        el.style.backgroundColor = 'var(--ink)';
-        el.textContent = 'Syncing...';
-      }, 300);
-    }, 4000);
-  }
-};

@@ -1,3 +1,4 @@
+import { Toast } from './toast.js';
 // Sign in, and keep each player's progress on the server.
 //
 // The local save is a write-ahead buffer: the game writes there first so it
@@ -96,8 +97,7 @@ async function flush() {
   if (wipePromise) await wipePromise;
   if (!user || !pending) return;
   pending = false;
-  const syncToast = document.getElementById('syncToast');
-  if (syncToast) syncToast.style.opacity = '1';
+  Toast.show('Syncing...');
   
   const local = window.Thread.getSave();
   const localResume = window.Thread.getResume();
@@ -127,9 +127,9 @@ async function flush() {
   } catch (e) {
     pending = true;                        // try again on the next change
     console.error('[Sync Error]', e);
-    if (window.handleError) window.handleError('Sync failed: ' + e.message);
+    Toast.show('Sync failed: ' + e.message, true);
   } finally {
-    if (syncToast) syncToast.style.opacity = '0';
+    Toast.hide();
   }
 }
 

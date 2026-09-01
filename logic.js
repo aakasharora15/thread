@@ -19,6 +19,7 @@
     out.lane = newer.lane || a.lane || 'medium';
     out.sound = newer.sound;
     out.last = newer.last || a.last || b.last;
+    out.cosmetics = newer.cosmetics || a.cosmetics || b.cosmetics || { color: 'default', audio: 'default' };
     ['easy', 'medium', 'hard'].forEach(function (k) {
       var x = a[k] || mkLane(), y = b[k] || mkLane(), lane = mkLane();
       lane.unlocked = Math.max(x.unlocked || 1, y.unlocked || 1);

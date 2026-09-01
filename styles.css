@@ -408,3 +408,14 @@ h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; color: var(--ink); }
   color: #C0392B; text-decoration: underline; text-underline-offset: 3px;
   font-weight: 600;
 }
+
+/* Custom Themes */
+body.theme-pink {
+  --thread: #FF107A;
+  --thread-core: #FFA9D6;
+}
+body.theme-gold {
+  --thread: #E6B800;
+  --thread-core: #FFF0B3;
+
+}
