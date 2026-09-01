@@ -23,7 +23,7 @@
 </svg>
 
 <!-- ============ sign in ============ -->
-<section class="gate" id="gate">
+<section class="gate done" id="gate">
   <div class="gatecard">
     <svg class="wordmark gatelogo" viewBox="0 0 1502.83 351.88" role="img" aria-label="Thread"><use href="#logo"/></svg>
     <p class="gateblurb">Sign in so your progress follows you to any phone.</p>
@@ -51,21 +51,10 @@
 </section>
 
 <!-- ============ splash ============ -->
-<section class="splash" id="splash">
+<section class="splash" id="splash" hidden>
   <img id="splashArt" src="mascot.png" alt="Thread" width="1080" height="1920">
   <p class="splashname" id="splashName" hidden></p>
 </section>
-<script>
-  // Safety net. sync.js normally clears the splash once it knows whether
-  // anyone is signed in, but it is a module loaded from a CDN: if that never
-  // arrives, this makes sure the splash cannot trap the app behind it.
-  setTimeout(function () {
-    var s = document.getElementById('splash');
-    if (!s || s.hidden) return;
-    s.classList.add('go');
-    setTimeout(function () { s.hidden = true; }, 500);
-  }, 6000);
-</script>
 
 <div class="wrap">
   <!-- ================= home ================= -->
@@ -166,6 +155,30 @@
           <div class="say" id="say" role="status" aria-live="polite"></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ================= profile ================= -->
+  <section class="screen" id="profile">
+    <div class="top">
+      <button class="icon" id="profBack" aria-label="Back to home">&larr;</button>
+      <div class="lv">Your Profile</div>
+      <div class="sp"></div>
+    </div>
+
+    <div class="mast" style="padding-top: 10px;">
+      <h1>Progress</h1>
+      <p>Here is your current standing across all difficulty lanes.</p>
+    </div>
+
+    <div class="lanes" id="profStats" style="margin-bottom: 30px;">
+      <!-- stats injected here -->
+    </div>
+
+    <div class="foot">
+      <p style="margin-bottom: 12px;">Have an idea or found a bug?</p>
+      <a href="mailto:developer@example.com?subject=Thread Game Request" class="gatego" style="display:inline-block; text-decoration:none; text-align:center;">Email the Developer</a>
+      <p style="margin-top: 24px;"><button id="profSignOut" style="text-decoration: underline; color: var(--ink-soft);">Sign out</button></p>
     </div>
   </section>
 </div>

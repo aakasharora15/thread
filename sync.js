@@ -115,9 +115,14 @@ function showSplash(name) {
   splash.classList.remove('go');
   splashShownAt = Date.now();
   splashHiding = false;
+  clearTimeout(splashGuard);
+  splashGuard = setTimeout(() => hideSplash(true), 6000);   // never trap the app
 }
 
+let splashGuard = null;
+
 function hideSplash(immediate) {
+  clearTimeout(splashGuard);
   if (splashHiding) return;
   splashHiding = true;
   const wait = immediate ? 0 : Math.max(0, 1700 - (Date.now() - splashShownAt));
@@ -144,11 +149,14 @@ async function signedIn(session) {
   gate.classList.add('done');
   showSplash(capitalized);                        // greets by name, or just the artwork
   window.Thread.setCloud(cloud);
-  await window.Thread.boot();
-  await pull();
-  pending = true;
-  flush();                                  // seed the row for a brand new account
-  hideSplash();
+  try {
+    await window.Thread.boot();
+    await pull();
+    pending = true;
+    flush();                                // seed the row for a brand new account
+  } finally {
+    hideSplash();
+  }
   
   // After login, show the profile page
   window.Thread.renderProfile();
@@ -250,7 +258,7 @@ paint();
 if (!configured()) {
   say('This copy has not been connected to a Supabase project yet. Fill in config.js.');
   goBtn.disabled = true;
-  hideSplash();
+  gate.classList.remove('done');
 } else {
   supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true }
@@ -260,5 +268,5 @@ if (!configured()) {
   });
   const { data } = await supabase.auth.getSession();
   if (data.session) await signedIn(data.session);
-  else hideSplash();                        // nobody signed in: straight to the gate
+  else gate.classList.remove('done');       // nobody signed in: show the gate
 }

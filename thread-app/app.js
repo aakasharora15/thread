@@ -683,7 +683,10 @@
 
   // ---------- screens ----------
   function show(id) {
-    ['home', 'play'].forEach(function (k) { document.getElementById(k).classList.toggle('on', k === id); });
+    ['home', 'play', 'profile'].forEach(function (k) { 
+      const el = document.getElementById(k);
+      if (el) el.classList.toggle('on', k === id); 
+    });
     document.body.classList.toggle('playing', id === 'play');
     window.scrollTo(0, 0);
   }
@@ -931,6 +934,25 @@
   document.getElementById('back').addEventListener('click', function () {
     saveResume(true); clearInterval(timer); S = null; renderMap(); show('home');
   });
+
+  var profBack = document.getElementById('profBack');
+  if (profBack) profBack.addEventListener('click', function () { show('home'); });
+  
+  var whoEl = document.getElementById('who');
+  if (whoEl) whoEl.addEventListener('click', function () { 
+    if (this.textContent) {
+      window.Thread.renderProfile();
+      show('profile'); 
+    }
+  });
+
+  var profSignOut = document.getElementById('profSignOut');
+  if (profSignOut) profSignOut.addEventListener('click', function() {
+    var signOutBtn = document.getElementById('signOut');
+    if (signOutBtn) signOutBtn.click();
+    show('home');
+  });
+
   document.getElementById('reset').addEventListener('click', function () { if (S) startLevel(S.lane, S.level); });
   document.getElementById('undo').addEventListener('click', function () { if (S && !S.over) rubOut(false); });
   document.getElementById('hint').addEventListener('click', function () { if (S && !S.over) useHint(); });
@@ -1022,6 +1044,32 @@
       resume = null;
       store.set(SAVE_KEY, '');
       store.set(RESUME_KEY, '');
+    },
+    show: show,
+    renderProfile: function() {
+      const stats = document.getElementById('profStats');
+      if (!stats) return;
+      
+      const countStars = (st) => Object.values(st.stars || {}).reduce((a, b) => a + b, 0);
+      const countSolved = (st) => Object.keys(st.stars || {}).length;
+      
+      stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
+        const data = save[lane];
+        const stars = countStars(data);
+        const solved = countSolved(data);
+        const laneName = lane.charAt(0).toUpperCase() + lane.slice(1);
+        
+        return `
+          <div class="lane" style="display: block; flex: 1;">
+            <b>${laneName}</b>
+            <div style="font-size: 14px; margin-top: 8px;">
+              <div>Levels Unlocked: <strong>${data.unlocked}</strong></div>
+              <div>Levels Solved: <strong>${solved}</strong></div>
+              <div>Stars Earned: <strong>${stars}</strong></div>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
   };
 })();
