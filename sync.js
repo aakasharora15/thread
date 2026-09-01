@@ -190,10 +190,10 @@ async function signedIn(session) {
     hideSplash();
   }
   
-  // After login, show the profile page
+  // After login, show the home page
   updateMailLink();
   window.Thread.renderProfile();
-  window.Thread.show('profile');
+  window.Thread.show('home');
 }
 
 async function submit() {
@@ -300,6 +300,10 @@ if (!configured()) {
     if (session) accessToken = session.access_token;
   });
   const { data } = await supabase.auth.getSession();
-  if (data.session) await signedIn(data.session);
-  else gate.classList.remove('done');       // nobody signed in: show the gate
+  if (data.session) {
+    await signedIn(data.session);
+  } else {
+    hideSplash(true);
+    gate.classList.remove('done');       // nobody signed in: show the gate
+  }
 }
