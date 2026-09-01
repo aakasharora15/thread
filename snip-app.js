@@ -1,3 +1,4 @@
+import { startSnip, stopSnip } from './snip.js';
 import { Toast } from './toast.js';
 import { Audio } from './audio.js';
 import { Settings } from './settings.js';
@@ -8,7 +9,6 @@ Audio.init(() => {
   return { soundEnabled: s.sound, audioTheme: s.cosmetics.audio === '8bit' ? 'square' : 'sine' };
 });
 
-import { startSnip, stopSnip } from './snip.js';
 
 window.Thread = {
   show: function(id) {

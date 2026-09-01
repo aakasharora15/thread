@@ -16,6 +16,21 @@
 <link rel="preload" as="image" href="mascot.png">
 <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+<script>
+window.addEventListener('error', function(e) {
+  const err = document.createElement('div');
+  err.style.cssText = 'color:red;font-size:14px;z-index:9999;position:fixed;top:0;left:0;background:black;padding:10px;width:100%;';
+  err.textContent = 'ERR: ' + e.message + ' at ' + e.filename + ':' + e.lineno;
+  document.body.appendChild(err);
+});
+window.addEventListener('unhandledrejection', function(e) {
+  const err = document.createElement('div');
+  err.style.cssText = 'color:orange;font-size:14px;z-index:9999;position:fixed;top:40px;left:0;background:black;padding:10px;width:100%;';
+  err.textContent = 'PROMISE ERR: ' + e.reason;
+  document.body.appendChild(err);
+});
+</script>
 </head>
 <body>
 

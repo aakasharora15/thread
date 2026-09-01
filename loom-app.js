@@ -1,3 +1,4 @@
+import { startLoom, stopLoom } from './loom.js';
 import { Toast } from './toast.js';
 import { Audio } from './audio.js';
 import { Settings } from './settings.js';
@@ -8,7 +9,6 @@ Audio.init(() => {
   return { soundEnabled: s.sound, audioTheme: s.cosmetics.audio === '8bit' ? 'square' : 'sine' };
 });
 
-import { startLoom, stopLoom } from './loom.js';
 
 window.Thread = {
   show: function(id) {
