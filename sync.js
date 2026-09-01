@@ -18,7 +18,7 @@ const swapText = document.getElementById('gSwapText');
 const whoEl = document.getElementById('who');
 const newBox = document.getElementById('gNew');
 const nameEl = document.getElementById('gName');
-const ageEl = document.getElementById('gAge');
+const dobEl = document.getElementById('gDob');
 const splash = document.getElementById('splash');
 const splashName = document.getElementById('splashName');
 
@@ -169,17 +169,17 @@ async function submit() {
   if (!email || pass.length < 8) { say('Enter your email and a password of at least 8 characters.'); return; }
 
   const fullName = nameEl.value.trim().replace(/\s+/g, ' ');
-  const age = parseInt(ageEl.value, 10);
+  const dob = dobEl.value;
   if (mode === 'up') {
     if (fullName.length < 2) { say('Tell us your name so the game can say hello.'); return; }
-    if (!(age >= 3 && age <= 120)) { say('Enter an age between 3 and 120.'); return; }
+    if (!dob) { say('Please enter your Date of Birth.'); return; }
   }
 
   goBtn.disabled = true;
   say(mode === 'up' ? 'Creating your account…' : 'Signing in…', true);
   try {
     const creds = { email, password: pass };
-    if (mode === 'up') creds.options = { data: { full_name: fullName, age: age } };
+    if (mode === 'up') creds.options = { data: { full_name: fullName, dob: dob } };
     const fn = mode === 'up' ? 'signUp' : 'signInWithPassword';
     const { data, error } = await supabase.auth[fn](creds);
     if (error) throw error;
@@ -221,7 +221,7 @@ document.getElementById('signOut').addEventListener('click', async () => {
   whoEl.style.cursor = 'default';
   passEl.value = '';
   nameEl.value = '';
-  ageEl.value = '';
+  dobEl.value = '';
   gate.classList.remove('done');
   say('Signed out.', true);
 });
