@@ -8,7 +8,7 @@ export const Toast = {
       document.body.appendChild(el);
     }
     el.textContent = msg;
-    el.style.backgroundColor = isError ? 'var(--thread)' : 'var(--ink)';
+    el.style.backgroundColor = isError ? '#C0392B' : 'var(--ink)';
     el.style.opacity = '1';
     
     if (this.timeout) clearTimeout(this.timeout);

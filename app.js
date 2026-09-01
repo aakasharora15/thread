@@ -89,7 +89,7 @@ import { Toast } from './toast.js';
   var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
-  Audio.init(() => save);
+  Audio.init(function () { return { soundEnabled: save.sound !== false }; });
 
 
   // ---------- storage ----------
@@ -129,6 +129,7 @@ import { Toast } from './toast.js';
           if (v) {
             save.lane = v.lane || 'medium';
             save.sound = v.sound;
+            save.cosmetics = v.cosmetics || { color: 'default', audio: 'default' };
             save.last = v.last;
             save.seq = v.seq || 0;
             save.updatedAt = v.updatedAt || 0;
@@ -139,6 +140,7 @@ import { Toast } from './toast.js';
       return store.get(RESUME_KEY);
     }).then(function (raw) {
       if (raw) { try { resume = JSON.parse(raw); } catch (e) { resume = null; } }
+      applyCosmetics();
     }).catch(function () {});
   }
   function persist(quiet) {
@@ -862,6 +864,22 @@ import { Toast } from './toast.js';
   // and works offline once it has been sent on.
   
 
+  // ---------- cosmetics ----------
+  // Unlocked with stars and stored in the save, so they follow the player
+  // between devices. Anything unrecognised falls back to the stock look.
+  var LOOK_CLASS = { pink: 'theme-pink', gold: 'theme-gold' };
+  function cosmetics() {
+    if (!save.cosmetics) save.cosmetics = { color: 'default', audio: 'default' };
+    return save.cosmetics;
+  }
+  function applyCosmetics() {
+    var c = cosmetics();
+    Object.keys(LOOK_CLASS).forEach(function (k) {
+      document.body.classList.toggle(LOOK_CLASS[k], c.color === k);
+    });
+    Audio.setTheme(c.audio);
+  }
+
   function soundUI() {
     var on = save.sound !== false;
     ['sndHome', 'sndPlay'].forEach(function (id) {
@@ -875,7 +893,7 @@ import { Toast } from './toast.js';
   function toggleSound() {
     save.sound = save.sound === false;
     persist(); soundUI();
-    if (save.sound) Audio.start(); else Audio.stop();
+    if (save.sound) Audio.play(); else Audio.stop();
   }
 
   // ---------- wiring ----------
@@ -897,7 +915,7 @@ import { Toast } from './toast.js';
   document.getElementById('sndPlay').addEventListener('click', toggleSound);
   document.addEventListener('pointerdown', function first() {
     document.removeEventListener('pointerdown', first);
-    if (save.sound !== false) Audio.start();
+    if (save.sound !== false) Audio.play();
   }, { passive: true });
 
   document.getElementById('cta').addEventListener('click', function () {
@@ -933,7 +951,9 @@ import { Toast } from './toast.js';
     if (!confirm('Are you sure you want to clear all your saved progress? This cannot be undone.')) return;
     if (cloud && cloud.wipe) cloud.wipe();
     // keep the sound preference: it is a setting, not progress
-    save = { lane: save.lane, sound: save.sound, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+    save = { lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
+             easy: mkLane(), medium: mkLane(), hard: mkLane() };
+    applyCosmetics();
     clearResume(); persist(); renderMap();
     if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
     say('Saved progress cleared.');
@@ -984,7 +1004,7 @@ import { Toast } from './toast.js';
       pauseClock(); saveResume(true); persist(); Audio.stop();
     } else {
       resumeClock();
-      if (save.sound !== false) Audio.start();
+      if (save.sound !== false) Audio.play();
     }
   });
 
@@ -1026,7 +1046,9 @@ import { Toast } from './toast.js';
       clearInterval(timer);
       S = null;
       Audio.stop();
-      save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+      save = { lane: 'medium', seq: 0, updatedAt: 0, cosmetics: { color: 'default', audio: 'default' },
+               easy: mkLane(), medium: mkLane(), hard: mkLane() };
+      applyCosmetics();
       resume = null;
       store.set(SAVE_KEY, '');
       store.set(RESUME_KEY, '');
@@ -1040,33 +1062,37 @@ import { Toast } from './toast.js';
       const countSolved = (st) => Object.keys(st.stars || {}).length;
       
       
-      // Update cosmetics UI
-      if (!save.cosmetics) save.cosmetics = { color: 'default', audio: 'default' };
-      const totalStars = ['easy', 'medium', 'hard'].reduce((acc, lane) => acc + countStars(save[lane]), 0);
-      
-      const themePink = document.getElementById('themePink');
-      const themeGold = document.getElementById('themeGold');
-      const audio8Bit = document.getElementById('audio8Bit');
-      
-      if (themePink) themePink.style.display = totalStars >= 20 ? 'block' : 'none';
-      if (themeGold) themeGold.style.display = totalStars >= 50 ? 'block' : 'none';
-      if (audio8Bit) audio8Bit.style.display = totalStars >= 100 ? 'block' : 'none';
-      
-      document.querySelectorAll('#profRewards button').forEach(b => {
-        b.style.opacity = '0.5';
-        if (b.dataset.color === save.cosmetics.color) b.style.opacity = '1';
-        if (b.dataset.audio === save.cosmetics.audio) b.style.opacity = '1';
-        
-        b.onclick = function() {
-          if (this.dataset.color) save.cosmetics.color = this.dataset.color;
-          if (this.dataset.audio) save.cosmetics.audio = this.dataset.audio;
+      // Unlocked looks. The buttons are hidden, not greyed, until they are
+      // earned, so the profile never advertises a locked reward.
+      var c = cosmetics();
+      var totalStars = ['easy', 'medium', 'hard'].reduce(function (acc, lane) {
+        return acc + countStars(save[lane]);
+      }, 0);
+      var LOCKS = { themePink: 20, themeGold: 50, audio8Bit: 100 };
+      var nextAt = 0;
+      Object.keys(LOCKS).forEach(function (id) {
+        var b = document.getElementById(id);
+        var earned = totalStars >= LOCKS[id];
+        if (b) b.hidden = !earned;
+        if (!earned && (!nextAt || LOCKS[id] < nextAt)) nextAt = LOCKS[id];
+      });
+      var note = document.getElementById('profRewardsNote');
+      if (note) note.textContent = nextAt
+        ? (nextAt - totalStars) + ' more ' + (nextAt - totalStars === 1 ? 'star' : 'stars') + ' unlocks the next look.'
+        : 'Every look is unlocked. Nicely done.';
+
+      document.querySelectorAll('#profRewards .swatch').forEach(function (b) {
+        var kind = b.dataset.color ? 'color' : 'audio';
+        b.classList.toggle('on', c[kind] === b.dataset[kind]);
+        b.onclick = function () {
+          c[kind] = b.dataset[kind];
           persist();
           applyCosmetics();
-          if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
+          window.Thread.renderProfile();
         };
       });
-      
-stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
+
+      stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
         const data = save[lane];
         const stars = countStars(data);
         const solved = countSolved(data);

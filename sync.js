@@ -86,7 +86,7 @@ const cloud = {
       } catch (e) {
         // leave forceOverwrite set so the next push still overwrites
         console.error('[Wipe Error]', e);
-        if (window.handleError) window.handleError('Could not clear the server copy: ' + (e.message || e));
+        Toast.show('Could not clear the server copy: ' + (e.message || e), true);
       }
       wipePromise = null;
     }

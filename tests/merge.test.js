@@ -43,3 +43,15 @@ test('merging is order independent for progress', () => {
 test('seq climbs to the higher of the two', () => {
   assert.strictEqual(mergeSaves(save({ seq: 2 }), save({ seq: 11 })).seq, 11);
 });
+
+test('the newer copy decides which look is worn', () => {
+  const older = save({ updatedAt: 100, cosmetics: { color: 'pink', audio: 'default' } });
+  const newer = save({ updatedAt: 900, cosmetics: { color: 'gold', audio: '8bit' } });
+  assert.deepStrictEqual(mergeSaves(older, newer).cosmetics, { color: 'gold', audio: '8bit' });
+  assert.deepStrictEqual(mergeSaves(newer, older).cosmetics, { color: 'gold', audio: '8bit' });
+});
+
+test('a save from before looks existed still merges', () => {
+  const out = mergeSaves(save({ updatedAt: 100 }), save({ updatedAt: 900 }));
+  assert.deepStrictEqual(out.cosmetics, { color: 'default', audio: 'default' });
+});

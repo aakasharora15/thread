@@ -417,5 +417,18 @@ body.theme-pink {
 body.theme-gold {
   --thread: #E6B800;
   --thread-core: #FFF0B3;
-
 }
+
+/* Unlocked looks on the profile page */
+.rewards { margin-bottom: 30px; }
+.rewards h2 { font-size: 18px; margin-bottom: 4px; }
+#profRewardsNote { color: var(--ink-soft); font-size: 13px; margin-bottom: 12px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.swatch {
+  padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  background: var(--cell); color: var(--ink-soft);
+  border: 2px solid transparent;
+}
+.swatch.on { color: var(--ink); border-color: var(--thread); }
+.sw-pink.on { border-color: #FF107A; }
+.sw-gold.on { border-color: #E6B800; }
