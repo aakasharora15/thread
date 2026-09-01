@@ -109,7 +109,7 @@ let splashHiding = false;
 // The splash is in the markup already, so it paints before this module has
 // even resolved the session and nobody sees the sign in screen flash past.
 function showSplash(name) {
-  splashName.textContent = name ? 'Welcome, ' + name : '';
+  splashName.textContent = name ? 'Hello, ' + name : '';
   splashName.hidden = !name;
   splash.hidden = false;
   splash.classList.remove('go');
