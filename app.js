@@ -987,9 +987,7 @@
   
   var whoEl = document.getElementById('who');
   if (whoEl) whoEl.addEventListener('click', function () { 
-    if (this.textContent === 'Sign In') {
-      document.getElementById('gate').classList.remove('done');
-    } else if (this.textContent) {
+    if (this.textContent) {
       window.Thread.renderProfile();
       show('profile'); 
     }
