@@ -26,6 +26,14 @@
   <div class="gatecard">
     <svg class="wordmark gatelogo" viewBox="0 0 1502.83 351.88" role="img" aria-label="Thread"><use href="#logo"/></svg>
     <p class="gateblurb">Sign in so your progress follows you to any phone.</p>
+    <div id="gNew" hidden>
+      <label class="field"><span>Your name</span>
+        <input id="gName" type="text" autocomplete="name" autocapitalize="words" placeholder="Ana Ruiz">
+      </label>
+      <label class="field"><span>Age</span>
+        <input id="gAge" type="number" inputmode="numeric" min="3" max="120" step="1" placeholder="Used to say hello, nothing else">
+      </label>
+    </div>
     <label class="field"><span>Email</span>
       <input id="gEmail" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com">
     </label>
@@ -38,6 +46,21 @@
       <button id="gSwap">Create an account</button>
     </p>
     <p class="gatemsg" id="gMsg" role="status" aria-live="polite"></p>
+  </div>
+</section>
+
+<!-- ============ welcome ============ -->
+<section class="hello" id="hello" hidden>
+  <div class="hellocard">
+    <div class="mascot" aria-hidden="true">
+      <svg class="mtail" viewBox="0 0 200 104"><path d="M150 26C146 68 116 92 74 88 52 86 38 76 24 62"/></svg>
+      <div class="mbody">
+        <i class="eye l"></i><i class="eye r"></i>
+        <svg class="mouth" viewBox="0 0 40 20"><path d="M5 5q15 15 30 0"/></svg>
+      </div>
+    </div>
+    <h2>Hello, <span id="helloName">you</span></h2>
+    <p id="helloNote">One line, no gaps. Let&rsquo;s go.</p>
   </div>
 </section>
 

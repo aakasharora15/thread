@@ -16,6 +16,11 @@ const goBtn = document.getElementById('gGo');
 const swapBtn = document.getElementById('gSwap');
 const swapText = document.getElementById('gSwapText');
 const whoEl = document.getElementById('who');
+const newBox = document.getElementById('gNew');
+const nameEl = document.getElementById('gName');
+const ageEl = document.getElementById('gAge');
+const hello = document.getElementById('hello');
+const helloName = document.getElementById('helloName');
 
 let mode = 'in';                 // 'in' = sign in, 'up' = create account
 let supabase = null;
@@ -90,12 +95,38 @@ async function pull() {
   if (row) window.Thread.applyRemote(row.data, row.resume);
 }
 
+// ---------- greeting ----------
+// The name lives on the account itself (user_metadata), so it follows the
+// player to any device without a second table to keep in step.
+function firstName(u) {
+  const full = ((u.user_metadata || {}).full_name || '').trim();
+  return full ? full.split(/\s+/)[0] : '';
+}
+
+function welcome(u) {
+  const first = firstName(u);
+  helloName.textContent = first || 'you';
+  hello.hidden = false;
+  hello.classList.remove('go');
+  let closed = false;
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    hello.classList.add('go');
+    setTimeout(() => { hello.hidden = true; }, 520);
+  };
+  const timer = setTimeout(close, 2200);
+  hello.addEventListener('click', () => { clearTimeout(timer); close(); }, { once: true });
+}
+
 // ---------- session ----------
 async function signedIn(session) {
   user = session.user;
   accessToken = session.access_token;
-  whoEl.textContent = user.email;
+  whoEl.textContent = firstName(user) || user.email;
+  whoEl.title = user.email;
   gate.classList.add('done');
+  welcome(user);
   window.Thread.setCloud(cloud);
   await window.Thread.boot();
   await pull();
@@ -107,11 +138,21 @@ async function submit() {
   const email = emailEl.value.trim();
   const pass = passEl.value;
   if (!email || pass.length < 8) { say('Enter your email and a password of at least 8 characters.'); return; }
+
+  const fullName = nameEl.value.trim().replace(/\s+/g, ' ');
+  const age = parseInt(ageEl.value, 10);
+  if (mode === 'up') {
+    if (fullName.length < 2) { say('Tell us your name so the game can say hello.'); return; }
+    if (!(age >= 3 && age <= 120)) { say('Enter an age between 3 and 120.'); return; }
+  }
+
   goBtn.disabled = true;
   say(mode === 'up' ? 'Creating your account…' : 'Signing in…', true);
   try {
+    const creds = { email, password: pass };
+    if (mode === 'up') creds.options = { data: { full_name: fullName, age: age } };
     const fn = mode === 'up' ? 'signUp' : 'signInWithPassword';
-    const { data, error } = await supabase.auth[fn]({ email, password: pass });
+    const { data, error } = await supabase.auth[fn](creds);
     if (error) throw error;
     if (!data.session) {
       say('Account created. Check your email to confirm it, then sign in.', true);
@@ -127,6 +168,7 @@ async function submit() {
 }
 
 function paint() {
+  newBox.hidden = mode !== 'up';
   goBtn.textContent = mode === 'up' ? 'Create account' : 'Sign in';
   swapText.textContent = mode === 'up' ? 'Already have an account?' : 'New here?';
   swapBtn.textContent = mode === 'up' ? 'Sign in' : 'Create an account';
@@ -145,7 +187,10 @@ document.getElementById('signOut').addEventListener('click', async () => {
   user = null;
   window.Thread.signedOut();
   whoEl.textContent = '';
+  whoEl.removeAttribute('title');
   passEl.value = '';
+  nameEl.value = '';
+  ageEl.value = '';
   gate.classList.remove('done');
   say('Signed out.', true);
 });
