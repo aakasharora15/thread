@@ -6,7 +6,8 @@
   var LANE = {
     easy:   { name: 'Easy',   hints: 3, undoCap: Infinity, guard: true,  highlight: true,  clock: 'none',      parBase: 1.6 },
     medium: { name: 'Medium', hints: 1, undoCap: Infinity, guard: false, highlight: false, clock: 'up',        parBase: 2.0 },
-    hard:   { name: 'Hard',   hints: 0, undoCap: 5,        guard: false, highlight: false, clock: 'countdown', parBase: 2.4 }
+    hard:   { name: 'Hard',   hints: 0, undoCap: 5,        guard: false, highlight: false, clock: 'countdown', parBase: 2.4 },
+    daily:  { name: 'Daily',  hints: 0, undoCap: 5,        guard: false, highlight: false, clock: 'countdown', parBase: 2.4 }
   };
   // Twenty worlds of ten levels. Each one repaints the whole game.
   var THEMES = [
@@ -67,7 +68,7 @@
   var SAVE_KEY = 'thread:save:v1';
   var RESUME_KEY = 'thread:resume:v1';
 
-  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), daily: mkLane() };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
   function mkLane() { return { unlocked: 1, stars: {}, streak: 0, bank: 0 }; }
@@ -82,7 +83,7 @@
     out.lane = newer.lane || a.lane || 'medium';
     out.sound = newer.sound;
     out.last = newer.last || a.last || b.last;
-    ['easy', 'medium', 'hard'].forEach(function (k) {
+    ['easy', 'medium', 'hard', 'daily'].forEach(function (k) {
       var x = a[k] || mkLane(), y = b[k] || mkLane(), lane = mkLane();
       lane.unlocked = Math.max(x.unlocked || 1, y.unlocked || 1);
       lane.streak = Math.max(x.streak || 0, y.streak || 0);
@@ -129,10 +130,17 @@
   function load() {
     return store.get(SAVE_KEY).then(function (raw) {
       if (raw) {
-        var v = JSON.parse(raw);
-        ['easy', 'medium', 'hard'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
-        if (v.lane) save.lane = v.lane;
-        if (v.last) save.last = v.last;
+        try {
+          var v = JSON.parse(raw);
+          if (v) {
+            save.lane = v.lane || 'medium';
+            save.sound = v.sound;
+            save.last = v.last;
+            save.seq = v.seq || 0;
+            save.updatedAt = v.updatedAt || 0;
+            ['easy', 'medium', 'hard', 'daily'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
+          }
+        } catch(e){}
       }
       return store.get(RESUME_KEY);
     }).then(function (raw) {
@@ -173,7 +181,15 @@
 
   // ---------- board decoding ----------
   function decode(lane, level) {
-    var b = BOARDS[lane][level - 1];
+    var b;
+    if (lane === 'daily') {
+      var d = new Date();
+      var seed = d.getFullYear() * 10000 + (d.getMonth()+1)*100 + d.getDate() + level;
+      var x = Math.sin(seed) * 10000;
+      b = BOARDS.hard[Math.floor((x - Math.floor(x)) * BOARDS.hard.length)];
+    } else {
+      b = BOARDS[lane][level - 1];
+    }
     var R = b.r, C = b.c;
     var open = [];
     for (var i = 0; i < R * C; i++) open.push(true);
@@ -700,6 +716,7 @@
   }
   function onMove(e) {
     if (!S || !S.dragging || S.over) return;
+    if (window.addSparks) window.addSparks(e.clientX, e.clientY);
     var i = cellAt(e);
     if (i < 0) return;
     if (i === S.line[S.line.length - 1]) return;
@@ -1006,7 +1023,7 @@
   document.getElementById('resetAll').addEventListener('click', function () {
     if (confirm('Are you sure you want to clear all your saved progress? This cannot be undone.')) {
       if (cloud && cloud.wipe) cloud.wipe();
-      save = { lane: save.lane, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+      save = { lane: save.lane, easy: mkLane(), medium: mkLane(), hard: mkLane(), daily: mkLane() };
       clearResume(); persist(); renderMap();
       if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
     }
@@ -1092,7 +1109,7 @@
       clearInterval(timer);
       S = null;
       Snd.stop();
-      save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+      save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), daily: mkLane() };
       resume = null;
       store.set(SAVE_KEY, '');
       store.set(RESUME_KEY, '');
@@ -1105,7 +1122,7 @@
       const countStars = (st) => Object.values(st.stars || {}).reduce((a, b) => a + b, 0);
       const countSolved = (st) => Object.keys(st.stars || {}).length;
       
-      stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
+      stats.innerHTML = ['easy', 'medium', 'hard', 'daily'].map(lane => {
         const data = save[lane];
         const stars = countStars(data);
         const solved = countSolved(data);
@@ -1137,4 +1154,63 @@
       });
     }
   };
+
+  // Zen Mode
+  var zenToggle = document.getElementById('zenToggle');
+  if (zenToggle) zenToggle.addEventListener('click', function() {
+    document.body.classList.toggle('zen-mode');
+  });
+
+  // Swipe Gestures
+  var touchStartX = 0;
+  document.getElementById('play').addEventListener('touchstart', function(e) {
+    if (e.target.closest('svg.board') || e.target.closest('button')) return;
+    touchStartX = e.touches[0].clientX;
+  }, {passive:true});
+  document.getElementById('play').addEventListener('touchend', function(e) {
+    if (!S || e.target.closest('svg.board') || e.target.closest('button')) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 80) {
+      if (dx < 0 && S.level < 200) startLevel(S.lane, S.level + 1); // Swipe left = next
+      else if (dx > 0 && S.level > 1) startLevel(S.lane, S.level - 1); // Swipe right = prev
+    }
+  }, {passive:true});
+
+  // Sparkles
+  var sparkCanvas = document.getElementById('sparks');
+  var sparkCtx = sparkCanvas ? sparkCanvas.getContext('2d') : null;
+  var sparks = [];
+  function resizeSparks() {
+    if (sparkCanvas) {
+      sparkCanvas.width = window.innerWidth;
+      sparkCanvas.height = window.innerHeight;
+    }
+  }
+  window.addEventListener('resize', resizeSparks);
+  resizeSparks();
+  window.addSparks = function(x, y) {
+    if (!sparkCtx || document.body.classList.contains('zen-mode')) return;
+    for(var i=0; i<3; i++) {
+      sparks.push({x: x, y: y, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3, life: 1, color: Math.random() > 0.5 ? '#00FFC8' : '#FFFFFF'});
+    }
+  };
+  function drawSparks() {
+    if (!sparkCtx) return;
+    sparkCtx.clearRect(0, 0, sparkCanvas.width, sparkCanvas.height);
+    for(var i=sparks.length-1; i>=0; i--) {
+      var s = sparks[i];
+      s.x += s.vx; s.y += s.vy; s.life -= 0.04;
+      if (s.life <= 0) { sparks.splice(i, 1); continue; }
+      sparkCtx.fillStyle = s.color;
+      sparkCtx.globalAlpha = s.life;
+      sparkCtx.beginPath();
+      sparkCtx.arc(s.x, s.y, 1.5, 0, Math.PI*2);
+      sparkCtx.fill();
+    }
+    sparkCtx.globalAlpha = 1;
+    requestAnimationFrame(drawSparks);
+  }
+  if (sparkCtx) requestAnimationFrame(drawSparks);
+
 })();
+
