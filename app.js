@@ -683,12 +683,20 @@
 
   // ---------- screens ----------
   function show(id) {
-    ['home', 'play', 'profile'].forEach(function (k) { 
-      const el = document.getElementById(k);
-      if (el) el.classList.toggle('on', k === id); 
-    });
-    document.body.classList.toggle('playing', id === 'play');
-    window.scrollTo(0, 0);
+    const update = () => {
+      ['home', 'play', 'profile'].forEach(function (k) { 
+        const el = document.getElementById(k);
+        if (el) el.classList.toggle('on', k === id); 
+      });
+      document.body.classList.toggle('playing', id === 'play');
+      window.scrollTo(0, 0);
+    };
+
+    if (document.startViewTransition) {
+      document.startViewTransition(update);
+    } else {
+      update();
+    }
   }
 
   var world = 0, worldPinned = false;
