@@ -30,6 +30,7 @@ let user = null;
 let accessToken = null;
 let pushTimer = null;
 let pending = false;
+let wipePromise = null;
 
 function say(text, ok) {
   msg.textContent = text || '';
@@ -59,12 +60,15 @@ const cloud = {
     pending = false;
     clearTimeout(pushTimer);
     if (user) {
-      try { await supabase.from('saves').delete().eq('user_id', user.id); } catch(e) {}
+      wipePromise = supabase.from('saves').delete().eq('user_id', user.id);
+      try { await wipePromise; } catch(e) {}
+      wipePromise = null;
     }
   }
 };
 
 async function flush() {
+  if (wipePromise) await wipePromise;
   if (!user || !pending) return;
   pending = false;
   const syncToast = document.getElementById('syncToast');
