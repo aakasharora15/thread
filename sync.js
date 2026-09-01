@@ -5,8 +5,8 @@
 // Merging is monotonic (see mergeSaves in app.js), so two devices converge
 // instead of one overwriting the other.
 
-// Loaded on demand, further down, so that a copy running with SKIP_LOGIN on
-// needs no network at all and cannot be held up by a blocked CDN.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
 const cfg = window.THREAD_CONFIG || {};
 const gate = document.getElementById('gate');
 const msg = document.getElementById('gMsg');
@@ -16,7 +16,11 @@ const goBtn = document.getElementById('gGo');
 const swapBtn = document.getElementById('gSwap');
 const swapText = document.getElementById('gSwapText');
 const whoEl = document.getElementById('who');
-const signOutBtn = document.getElementById('signOut');
+const newBox = document.getElementById('gNew');
+const nameEl = document.getElementById('gName');
+const ageEl = document.getElementById('gAge');
+const hello = document.getElementById('hello');
+const helloName = document.getElementById('helloName');
 
 let mode = 'in';                 // 'in' = sign in, 'up' = create account
 let supabase = null;
@@ -91,12 +95,38 @@ async function pull() {
   if (row) window.Thread.applyRemote(row.data, row.resume);
 }
 
+// ---------- greeting ----------
+// The name lives on the account itself (user_metadata), so it follows the
+// player to any device without a second table to keep in step.
+function firstName(u) {
+  const full = ((u.user_metadata || {}).full_name || '').trim();
+  return full ? full.split(/\s+/)[0] : '';
+}
+
+function welcome(u) {
+  const first = firstName(u);
+  helloName.textContent = first || 'you';
+  hello.hidden = false;
+  hello.classList.remove('go');
+  let closed = false;
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    hello.classList.add('go');
+    setTimeout(() => { hello.hidden = true; }, 520);
+  };
+  const timer = setTimeout(close, 2200);
+  hello.addEventListener('click', () => { clearTimeout(timer); close(); }, { once: true });
+}
+
 // ---------- session ----------
 async function signedIn(session) {
   user = session.user;
   accessToken = session.access_token;
-  whoEl.textContent = user.email;
+  whoEl.textContent = firstName(user) || user.email;
+  whoEl.title = user.email;
   gate.classList.add('done');
+  welcome(user);
   window.Thread.setCloud(cloud);
   await window.Thread.boot();
   await pull();
@@ -108,11 +138,21 @@ async function submit() {
   const email = emailEl.value.trim();
   const pass = passEl.value;
   if (!email || pass.length < 8) { say('Enter your email and a password of at least 8 characters.'); return; }
+
+  const fullName = nameEl.value.trim().replace(/\s+/g, ' ');
+  const age = parseInt(ageEl.value, 10);
+  if (mode === 'up') {
+    if (fullName.length < 2) { say('Tell us your name so the game can say hello.'); return; }
+    if (!(age >= 3 && age <= 120)) { say('Enter an age between 3 and 120.'); return; }
+  }
+
   goBtn.disabled = true;
   say(mode === 'up' ? 'Creating your account…' : 'Signing in…', true);
   try {
+    const creds = { email, password: pass };
+    if (mode === 'up') creds.options = { data: { full_name: fullName, age: age } };
     const fn = mode === 'up' ? 'signUp' : 'signInWithPassword';
-    const { data, error } = await supabase.auth[fn]({ email, password: pass });
+    const { data, error } = await supabase.auth[fn](creds);
     if (error) throw error;
     if (!data.session) {
       say('Account created. Check your email to confirm it, then sign in.', true);
@@ -128,6 +168,7 @@ async function submit() {
 }
 
 function paint() {
+  newBox.hidden = mode !== 'up';
   goBtn.textContent = mode === 'up' ? 'Create account' : 'Sign in';
   swapText.textContent = mode === 'up' ? 'Already have an account?' : 'New here?';
   swapBtn.textContent = mode === 'up' ? 'Sign in' : 'Create an account';
@@ -139,15 +180,17 @@ passEl.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
 emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') passEl.focus(); });
 swapBtn.addEventListener('click', () => { mode = mode === 'up' ? 'in' : 'up'; say(''); paint(); });
 
-signOutBtn.addEventListener('click', async () => {
-  if (!supabase) return;                    // nothing to sign out of in test mode
+document.getElementById('signOut').addEventListener('click', async () => {
   clearTimeout(pushTimer);
   await flush();
   await supabase.auth.signOut();
   user = null;
   window.Thread.signedOut();
   whoEl.textContent = '';
+  whoEl.removeAttribute('title');
   passEl.value = '';
+  nameEl.value = '';
+  ageEl.value = '';
   gate.classList.remove('done');
   say('Signed out.', true);
 });
@@ -179,25 +222,12 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') flush();
 });
 
-// ---------- test mode ----------
-// No account, no server: open the game and let app.js save to this browser.
-// The gate stays in the markup, it is simply never shown.
-async function startWithoutSignIn() {
-  gate.classList.add('done');
-  signOutBtn.hidden = true;
-  whoEl.textContent = 'Test mode, saved on this device only';
-  await window.Thread.boot();
-}
-
 // ---------- start ----------
 paint();
-if (cfg.SKIP_LOGIN) {
-  await startWithoutSignIn();
-} else if (!configured()) {
+if (!configured()) {
   say('This copy has not been connected to a Supabase project yet. Fill in config.js.');
   goBtn.disabled = true;
 } else {
-  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true }
   });

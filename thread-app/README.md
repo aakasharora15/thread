@@ -40,15 +40,6 @@ Both values are meant to be public. The anon key only works through row level
 security, which step 1 turned on. Never put the `service_role` key anywhere in
 this repo.
 
-## Playing without signing in
-
-`config.js` has a `SKIP_LOGIN` switch. While it is `true` the sign in screen
-never appears: the game opens straight onto the home screen, saves to the
-browser it is running in, and talks to no server at all, so it works before
-Supabase is set up. Progress will not follow anyone to another phone, and
-anyone with the URL can play, so set it back to `false` before you share the
-deployed URL with the group.
-
 ## 3. Push to GitHub
 
 ```
