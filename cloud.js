@@ -103,6 +103,8 @@ export async function push() {
 // guest when we simply could not ask is worse than saying nothing.
 export async function account() {
   const who = await connect();
-  if (who) return 'in';
-  return reachable ? 'out' : 'unknown';
+  if (!who) return { state: reachable ? 'out' : 'unknown', name: '' };
+  const full = ((who.user_metadata || {}).full_name || '').trim();
+  const name = full ? full.split(/\s+/)[0] : (who.email || '').split('@')[0];
+  return { state: 'in', name: name ? name.charAt(0).toUpperCase() + name.slice(1) : '' };
 }

@@ -43,10 +43,21 @@ paint();
 const accountEl = document.getElementById('hubAccount');
 const ACCOUNT_LINE = {
   in: 'Signed in. Your progress across all three games follows you to any phone.',
-  out: 'Playing as a guest, saved on this device. <a href="index.html">Sign in</a> and everything you have already played comes with you.'
+  out: 'Playing as a guest, saved on this device. Sign in and everything you have already played comes with you.',
+  unknown: 'One account covers all three games.'
 };
-account().then(state => {
-  if (accountEl && ACCOUNT_LINE[state]) accountEl.innerHTML = ACCOUNT_LINE[state];
+account().then(({ state, name }) => {
+  if (accountEl) accountEl.textContent = ACCOUNT_LINE[state] || ACCOUNT_LINE.unknown;
+  // Signing in has to be reachable from the front door. Burying it in a
+  // footer sentence is how you end up unable to tell a signed-out picker from
+  // a broken one.
+  const btn = document.getElementById('hubSignIn');
+  const who = document.getElementById('hubWho');
+  if (btn) btn.hidden = state !== 'out';
+  if (who) {
+    who.hidden = state !== 'in';
+    who.textContent = name ? 'Hello ' + name : 'Signed in';
+  }
 });
 
 // The server may be ahead of this device, so redraw once it has answered.
