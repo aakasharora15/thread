@@ -1,3 +1,4 @@
+import { initNav } from './nav.js';
 import { Audio } from './audio.js';
 import { Toast } from './toast.js';
   "use strict";
@@ -784,6 +785,7 @@ import { Toast } from './toast.js';
   }
 
   function renderMap() {
+    initNav();
     var lane = save.lane, st = save[lane], map = document.getElementById('map');
     if (!worldPinned) world = worldOf(st.unlocked);
     applyTheme(world);

@@ -1,5 +1,13 @@
-import { Audio } from './audio.js';
 import { Toast } from './toast.js';
+import { Audio } from './audio.js';
+import { Settings } from './settings.js';
+import { initNav } from './nav.js';
+
+Audio.init(() => {
+  const s = Settings.get();
+  return { soundEnabled: s.sound, audioTheme: s.cosmetics.audio === '8bit' ? 'square' : 'sine' };
+});
+
 import { startSnip, stopSnip } from './snip.js';
 
 window.Thread = {
@@ -17,6 +25,7 @@ window.Thread = {
 };
 
 function renderSnipHub() {
+  initNav();
   const container = document.getElementById('snip-levels');
   if (!container) return;
   container.innerHTML = '';
