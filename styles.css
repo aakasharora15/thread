@@ -285,9 +285,10 @@
 
 /* ---------- Breathing Background ---------- */
 body {
-  background: linear-gradient(135deg, var(--ground) 0%, #CDE3D6 50%, var(--ground) 100%);
+  background: linear-gradient(135deg, var(--ground) 0%, color-mix(in srgb, var(--ground) 40%, var(--cream) 60%) 50%, var(--ground) 100%);
   background-size: 200% 200%;
   animation: breathingBg 12s ease-in-out infinite;
+  transition: background 0.8s ease;
 }
 @keyframes breathingBg {
   0% { background-position: 0% 50%; }
@@ -338,3 +339,27 @@ body {
   20% { transform: scale(1); opacity: 1; }
   100% { transform: scale(1.15); opacity: 0; }
 }
+
+/* ---------- Neon Glowing Lines ---------- */
+svg.board path[stroke="var(--thread)"] { filter: drop-shadow(0 0 6px var(--thread)); }
+
+/* ---------- Error Shake Animation ---------- */
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-6px); }
+}
+.shake-error { animation: errorShake 0.3s ease-in-out !important; }
+
+/* ---------- Self-Drawing Logo Animation ---------- */
+@keyframes wipeIn {
+  0% { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
+  100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+.wordmark {
+  animation: wipeIn 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* ---------- Smooth 3D Board Transition ---------- */
+.boardslot { transition: transform 0.1s ease-out; }

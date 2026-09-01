@@ -372,7 +372,18 @@
 
   function extend(to) {
     var head = S.line[S.line.length - 1];
-    if (!legal(head, to)) return false;
+    if (!legal(head, to)) {
+      var bData = S.board;
+      var rf = Math.floor(head / bData.C), cf = head % bData.C, rt = Math.floor(to / bData.C), ct = to % bData.C;
+      if (Math.abs(rf - rt) + Math.abs(cf - ct) === 1) {
+        var bEl = document.getElementById('board');
+        bEl.classList.remove('shake-error');
+        void bEl.offsetWidth;
+        bEl.classList.add('shake-error');
+        Snd.blocked();
+      }
+      return false;
+    }
     if (LANE[S.lane].guard) {
       var cpTo = S.board.cp[to];
       if (cpTo !== 0 && cpTo !== nextNumber()) {
@@ -441,6 +452,7 @@
     
     var boardSlot = document.querySelector('.boardslot');
     if (boardSlot) {
+      boardSlot.style.transform = '';
       boardSlot.classList.remove('solved-pulse');
       void boardSlot.offsetWidth;
       boardSlot.classList.add('solved-pulse');
@@ -995,6 +1007,22 @@
   board.addEventListener('pointermove', onMove);
   board.addEventListener('pointerup', onUp);
   board.addEventListener('pointercancel', onUp);
+
+  var boardSlot = board.parentNode;
+  boardSlot.addEventListener('pointermove', function(e) {
+    if (!S || S.over) return;
+    var rect = boardSlot.getBoundingClientRect();
+    var cx = rect.width / 2, cy = rect.height / 2;
+    var tiltX = ((e.clientY - rect.top - cy) / cy) * -5;
+    var tiltY = ((e.clientX - rect.left - cx) / cx) * 5;
+    boardSlot.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+  });
+  boardSlot.addEventListener('pointerleave', function() {
+    boardSlot.style.transform = `perspective(800px) rotateX(0) rotateY(0)`;
+  });
+  boardSlot.addEventListener('pointerup', function() {
+    boardSlot.style.transform = `perspective(800px) rotateX(0) rotateY(0)`;
+  });
 
   document.getElementById('ovAgain').addEventListener('click', function () {
     document.getElementById('over').classList.remove('on');
