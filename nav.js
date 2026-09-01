@@ -73,7 +73,7 @@ export function initNav() {
   
   // Insert before the sound button if it exists, otherwise at the end
   const sndHome = document.getElementById('sndHome');
-  if (sndHome) {
+  if (sndHome && sndHome.parentNode === hdr) {
     hdr.insertBefore(navContainer, sndHome);
   } else {
     hdr.appendChild(navContainer);
