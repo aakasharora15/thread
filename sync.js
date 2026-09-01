@@ -54,6 +54,13 @@ const cloud = {
     pending = true;
     clearTimeout(pushTimer);
     pushTimer = setTimeout(flush, 1500);
+  },
+  async wipe() {
+    pending = false;
+    clearTimeout(pushTimer);
+    if (user) {
+      try { await supabase.from('saves').delete().eq('user_id', user.id); } catch(e) {}
+    }
   }
 };
 
