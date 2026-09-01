@@ -343,14 +343,7 @@ body {
 /* ---------- Neon Glowing Lines ---------- */
 svg.board path[stroke="var(--thread)"] { filter: drop-shadow(0 0 6px var(--thread)); }
 
-/* ---------- Error Shake Animation ---------- */
-@keyframes errorShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  50% { transform: translateX(6px); }
-  75% { transform: translateX(-6px); }
-}
-.shake-error { animation: errorShake 0.3s ease-in-out !important; }
+
 
 /* ---------- Self-Drawing Logo Animation ---------- */
 @keyframes wipeIn {

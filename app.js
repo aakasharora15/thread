@@ -372,18 +372,7 @@
 
   function extend(to) {
     var head = S.line[S.line.length - 1];
-    if (!legal(head, to)) {
-      var bData = S.board;
-      var rf = Math.floor(head / bData.C), cf = head % bData.C, rt = Math.floor(to / bData.C), ct = to % bData.C;
-      if (Math.abs(rf - rt) + Math.abs(cf - ct) === 1) {
-        var bEl = document.getElementById('board');
-        bEl.classList.remove('shake-error');
-        void bEl.offsetWidth;
-        bEl.classList.add('shake-error');
-        Snd.blocked();
-      }
-      return false;
-    }
+    if (!legal(head, to)) return false;
     if (LANE[S.lane].guard) {
       var cpTo = S.board.cp[to];
       if (cpTo !== 0 && cpTo !== nextNumber()) {
