@@ -129,10 +129,17 @@
   function load() {
     return store.get(SAVE_KEY).then(function (raw) {
       if (raw) {
-        var v = JSON.parse(raw);
-        ['easy', 'medium', 'hard'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
-        if (v.lane) save.lane = v.lane;
-        if (v.last) save.last = v.last;
+        try {
+          var v = JSON.parse(raw);
+          if (v) {
+            save.lane = v.lane || 'medium';
+            save.sound = v.sound;
+            save.last = v.last;
+            save.seq = v.seq || 0;
+            save.updatedAt = v.updatedAt || 0;
+            ['easy', 'medium', 'hard'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
+          }
+        } catch(e){}
       }
       return store.get(RESUME_KEY);
     }).then(function (raw) {
@@ -518,6 +525,33 @@
 
   // ---------- drawing ----------
   var NS = 'http://www.w3.org/2000/svg';
+
+  // Digits are not centred inside the em box, and how far off they sit depends
+  // on the font, so dominant-baseline alone leaves them riding high or low and
+  // it lands differently once the webfont replaces the fallback. Measure the
+  // rendered ink once and correct with dy, in em so it scales with font-size.
+  var digitDy = null;
+  function digitOffsetEm(svg) {
+    if (digitDy !== null) return digitDy;
+    var probe = el('text', {
+      x: 0, y: 0, 'font-size': 1, 'font-weight': 700,
+      'text-anchor': 'middle', opacity: 0
+    });
+    probe.textContent = '8';
+    svg.appendChild(probe);
+    var bb = probe.getBBox();
+    svg.removeChild(probe);
+    digitDy = bb.height ? -(bb.y + bb.height / 2) : 0.35;
+    return digitDy;
+  }
+  // the webfont usually lands after the first board is drawn, and its digits
+  // sit differently, so throw the cached correction away and redraw
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      digitDy = null;
+      if (S) draw();
+    });
+  }
   function el(name, attrs) {
     var e = document.createElementNS(NS, name);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
@@ -657,11 +691,12 @@
         fill: on ? 'var(--ink)' : 'var(--cell)', stroke: 'var(--ink)', 'stroke-width': 0.05
       }));
       var label = String(b.cp[j]);
+      // no letter-spacing: text-anchor centres the advance width including the
+      // space after the last glyph, so it shifts two digit labels off centre
       var t = el('text', {
-        x: cc2 + 0.5, y: rr + 0.5, 'text-anchor': 'middle', 'dominant-baseline': 'central',
-        dy: '0.01em', fill: on ? 'var(--cell)' : 'var(--ink)',
+        x: cc2 + 0.5, y: rr + 0.5, 'text-anchor': 'middle',
+        dy: digitOffsetEm(svg) + 'em', fill: on ? 'var(--cell)' : 'var(--ink)',
         'font-size': label.length > 1 ? 0.37 : 0.46, 'font-weight': 600,
-        'letter-spacing': label.length > 1 ? -0.03 : 0,
         'font-family': 'var(--display)'
       });
       t.textContent = label;
@@ -700,6 +735,7 @@
   }
   function onMove(e) {
     if (!S || !S.dragging || S.over) return;
+    if (window.addSparks) window.addSparks(e.clientX, e.clientY);
     var i = cellAt(e);
     if (i < 0) return;
     if (i === S.line[S.line.length - 1]) return;
@@ -1005,6 +1041,7 @@
   document.getElementById('hint').addEventListener('click', function () { if (S && !S.over) useHint(); });
   document.getElementById('resetAll').addEventListener('click', function () {
     if (confirm('Are you sure you want to clear all your saved progress? This cannot be undone.')) {
+      if (cloud && cloud.wipe) cloud.wipe();
       save = { lane: save.lane, easy: mkLane(), medium: mkLane(), hard: mkLane() };
       clearResume(); persist(); renderMap();
       if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
@@ -1136,4 +1173,42 @@
       });
     }
   };
+
+  // Sparkles
+  var sparkCanvas = document.getElementById('sparks');
+  var sparkCtx = sparkCanvas ? sparkCanvas.getContext('2d') : null;
+  var sparks = [];
+  function resizeSparks() {
+    if (sparkCanvas) {
+      sparkCanvas.width = window.innerWidth;
+      sparkCanvas.height = window.innerHeight;
+    }
+  }
+  window.addEventListener('resize', resizeSparks);
+  resizeSparks();
+  window.addSparks = function(x, y) {
+    if (!sparkCtx) return;
+    for(var i=0; i<3; i++) {
+      sparks.push({x: x, y: y, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3, life: 1, color: Math.random() > 0.5 ? '#00FFC8' : '#FFFFFF'});
+    }
+  };
+  function drawSparks() {
+    if (!sparkCtx) return;
+    sparkCtx.clearRect(0, 0, sparkCanvas.width, sparkCanvas.height);
+    for(var i=sparks.length-1; i>=0; i--) {
+      var s = sparks[i];
+      s.x += s.vx; s.y += s.vy; s.life -= 0.04;
+      if (s.life <= 0) { sparks.splice(i, 1); continue; }
+      sparkCtx.fillStyle = s.color;
+      sparkCtx.globalAlpha = s.life;
+      sparkCtx.beginPath();
+      sparkCtx.arc(s.x, s.y, 1.5, 0, Math.PI*2);
+      sparkCtx.fill();
+    }
+    sparkCtx.globalAlpha = 1;
+    requestAnimationFrame(drawSparks);
+  }
+  if (sparkCtx) requestAnimationFrame(drawSparks);
+
 })();
+

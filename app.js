@@ -525,6 +525,33 @@
 
   // ---------- drawing ----------
   var NS = 'http://www.w3.org/2000/svg';
+
+  // Digits are not centred inside the em box, and how far off they sit depends
+  // on the font, so dominant-baseline alone leaves them riding high or low and
+  // it lands differently once the webfont replaces the fallback. Measure the
+  // rendered ink once and correct with dy, in em so it scales with font-size.
+  var digitDy = null;
+  function digitOffsetEm(svg) {
+    if (digitDy !== null) return digitDy;
+    var probe = el('text', {
+      x: 0, y: 0, 'font-size': 1, 'font-weight': 700,
+      'text-anchor': 'middle', opacity: 0
+    });
+    probe.textContent = '8';
+    svg.appendChild(probe);
+    var bb = probe.getBBox();
+    svg.removeChild(probe);
+    digitDy = bb.height ? -(bb.y + bb.height / 2) : 0.35;
+    return digitDy;
+  }
+  // the webfont usually lands after the first board is drawn, and its digits
+  // sit differently, so throw the cached correction away and redraw
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      digitDy = null;
+      if (S) draw();
+    });
+  }
   function el(name, attrs) {
     var e = document.createElementNS(NS, name);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
@@ -664,11 +691,12 @@
         fill: on ? 'var(--ink)' : 'var(--cell)', stroke: 'var(--ink)', 'stroke-width': 0.05
       }));
       var label = String(b.cp[j]);
+      // no letter-spacing: text-anchor centres the advance width including the
+      // space after the last glyph, so it shifts two digit labels off centre
       var t = el('text', {
-        x: cc2 + 0.5, y: rr + 0.5, 'text-anchor': 'middle', 'dominant-baseline': 'central',
-        dy: '0.01em', fill: on ? 'var(--cell)' : 'var(--ink)',
+        x: cc2 + 0.5, y: rr + 0.5, 'text-anchor': 'middle',
+        dy: digitOffsetEm(svg) + 'em', fill: on ? 'var(--cell)' : 'var(--ink)',
         'font-size': label.length > 1 ? 0.37 : 0.46, 'font-weight': 600,
-        'letter-spacing': label.length > 1 ? -0.03 : 0,
         'font-family': 'var(--display)'
       });
       t.textContent = label;
