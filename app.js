@@ -755,6 +755,7 @@
     for (var l = first; l <= last; l++) {
       var b = document.createElement('button');
       b.className = 'node';
+      b.style.animationDelay = ((l - first) * 0.04) + 's';
       b.textContent = l;
       var s = st.stars[l] || 0;
       if (l > st.unlocked) { b.classList.add('locked'); b.disabled = true; }
