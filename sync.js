@@ -60,7 +60,19 @@ const cloud = {
     pending = false;
     clearTimeout(pushTimer);
     if (user) {
-      wipePromise = supabase.from('saves').delete().eq('user_id', user.id);
+      const emptySave = {
+        lane: 'medium', seq: 999999999, updatedAt: Date.now(),
+        easy: { unlocked: 1, stars: {}, streak: 0, bank: 0 },
+        medium: { unlocked: 1, stars: {}, streak: 0, bank: 0 },
+        hard: { unlocked: 1, stars: {}, streak: 0, bank: 0 }
+      };
+      wipePromise = supabase.from('saves').upsert({
+        user_id: user.id,
+        data: emptySave,
+        resume: null,
+        seq: 999999999,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
       try { await wipePromise; } catch(e) {}
       wipePromise = null;
     }
