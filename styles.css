@@ -47,18 +47,10 @@
   .lanes { display: flex; flex-direction: column; gap: 8px; margin: 22px 0 6px; }
   .lane {
     padding: 14px 16px; border-radius: 20px; background: var(--panel); box-shadow: var(--shadow-s);
-    text-align: left; display: flex; gap: 12px; align-items: baseline;
+    text-align: center;
   }
-  .lane b { font-family: var(--display); font-size: 18px; font-weight: 600; flex: none; width: 70px; }
-  .lane small { font-size: 12.5px; color: var(--ink-soft); line-height: 1.35; }
+  .lane b { font-family: var(--display); font-size: 18px; font-weight: 600; display: block; }
   .lane[aria-pressed="true"] { background: var(--ink); color: #fff; box-shadow: var(--shadow); }
-  .lane[aria-pressed="true"] small { color: rgba(255, 255, 255, .7); }
-  @media (min-width: 560px) {
-    .lanes { flex-direction: row; }
-    .lane { display: block; flex: 1; }
-    .lane b { display: block; width: auto; }
-    .lane small { display: block; margin-top: 4px; font-size: 11.5px; }
-  }
 
   .bar { display: flex; align-items: baseline; justify-content: space-between; margin: 26px 0 12px; }
   .bar h2 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 0; }
