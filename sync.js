@@ -67,12 +67,15 @@ const cloud = {
 async function flush() {
   if (!user || !pending) return;
   pending = false;
+  const syncToast = document.getElementById('syncToast');
+  if (syncToast) syncToast.style.opacity = '1';
+  
   const local = window.Thread.getSave();
   const localResume = window.Thread.getResume();
   try {
-    // read, merge, write. Cheap at this scale and it cannot lose a run.
-    const { data: row } = await supabase
+    const { data: row, error: fetchErr } = await supabase
       .from('saves').select('data, resume, seq').eq('user_id', user.id).maybeSingle();
+    if (fetchErr) throw fetchErr;
 
     const merged = row && row.data ? window.Thread.merge(local, row.data) : local;
     let resume = localResume;
@@ -90,10 +93,12 @@ async function flush() {
     }, { onConflict: 'user_id' });
 
     if (error) throw error;
-    if (row && row.data) window.Thread.applyRemote(row.data, row.resume);
+    window.Thread.applyRemote(merged, resume);
   } catch (e) {
-    pending = true;                        // try again on the next change
-    console.warn('save push failed, will retry', e.message || e);
+    console.error('[Sync Error]', e);
+    if (window.handleError) window.handleError('Sync failed: ' + e.message);
+  } finally {
+    if (syncToast) syncToast.style.opacity = '0';
   }
 }
 

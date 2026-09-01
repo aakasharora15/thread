@@ -4,7 +4,7 @@
     --cream: #F7F2E7;
     --cell: #FFFFFF;
     --ink: #14170F;
-    --ink-soft: #7F8E85;
+    --ink-soft: #5A6960; /* Darkened for accessibility contrast */
     --rule: #E2EAE3;
     --mint: #4CC0A0;
     --thread: #E63E2E;
@@ -109,7 +109,7 @@
   .top .sp { flex: 1; }
   #lvDots { color: var(--gold); letter-spacing: 2px; }
   .icon {
-    width: 42px; height: 42px; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow-s);
+    width: 48px; height: 48px; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow-s);
     font-size: 17px; display: flex; align-items: center; justify-content: center; flex: none;
   }
   .strip { height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .6); position: relative; flex: none; overflow: hidden; }
@@ -390,3 +390,9 @@ svg.board path[stroke="var(--thread)"] { filter: drop-shadow(0 0 6px var(--threa
 #profMailLink { color: var(--ink); }
 #profMailNote { font-size: 12.5px; line-height: 1.5; }
 
+
+/* Typographic Hierarchy Refinements */
+h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; color: var(--ink); }
+.mast h1 { font-size: 2.5rem; }
+.bar h2 { font-size: 1.5rem; }
+.card h3 { font-size: 2rem; }

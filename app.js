@@ -458,14 +458,18 @@
     var par = parTime(S.board, S.lane);
     var stars = 1 + (clean ? 1 : 0) + (clean && S.elapsed <= par ? 1 : 0);
     
-    if (stars === 3 && window.confetti) {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#4CC0A0', '#E8C04A', '#FF7A5C'],
-        disableForReducedMotion: true
-      });
+    if (stars === 3) {
+      if (!window.confetti) {
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+        script.onload = function() { fireConfetti(); };
+        document.body.appendChild(script);
+      } else {
+        fireConfetti();
+      }
+    }
+    function fireConfetti() {
+      window.confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#4CC0A0', '#E8C04A', '#FF7A5C'], disableForReducedMotion: true });
     }
     var st = save[S.lane];
     st.stars[S.level] = Math.max(st.stars[S.level] || 0, stars);
@@ -1212,3 +1216,20 @@
 
 })();
 
+
+// Centralized error handling utility
+window.handleError = function(msg) {
+  var el = document.getElementById('syncToast');
+  if (el) {
+    el.textContent = msg;
+    el.style.backgroundColor = 'var(--thread)'; // Red for error
+    el.style.opacity = '1';
+    setTimeout(function() {
+      el.style.opacity = '0';
+      setTimeout(function() {
+        el.style.backgroundColor = 'var(--ink)';
+        el.textContent = 'Syncing...';
+      }, 300);
+    }, 4000);
+  }
+};
