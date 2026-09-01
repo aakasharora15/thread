@@ -6,8 +6,7 @@
   var LANE = {
     easy:   { name: 'Easy',   hints: 3, undoCap: Infinity, guard: true,  highlight: true,  clock: 'none',      parBase: 1.6 },
     medium: { name: 'Medium', hints: 1, undoCap: Infinity, guard: false, highlight: false, clock: 'up',        parBase: 2.0 },
-    hard:   { name: 'Hard',   hints: 0, undoCap: 5,        guard: false, highlight: false, clock: 'countdown', parBase: 2.4 },
-    daily:  { name: 'Daily',  hints: 0, undoCap: 5,        guard: false, highlight: false, clock: 'countdown', parBase: 2.4 }
+    hard:   { name: 'Hard',   hints: 0, undoCap: 5,        guard: false, highlight: false, clock: 'countdown', parBase: 2.4 }
   };
   // Twenty worlds of ten levels. Each one repaints the whole game.
   var THEMES = [
@@ -68,7 +67,7 @@
   var SAVE_KEY = 'thread:save:v1';
   var RESUME_KEY = 'thread:resume:v1';
 
-  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), daily: mkLane() };
+  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
   function mkLane() { return { unlocked: 1, stars: {}, streak: 0, bank: 0 }; }
@@ -83,7 +82,7 @@
     out.lane = newer.lane || a.lane || 'medium';
     out.sound = newer.sound;
     out.last = newer.last || a.last || b.last;
-    ['easy', 'medium', 'hard', 'daily'].forEach(function (k) {
+    ['easy', 'medium', 'hard'].forEach(function (k) {
       var x = a[k] || mkLane(), y = b[k] || mkLane(), lane = mkLane();
       lane.unlocked = Math.max(x.unlocked || 1, y.unlocked || 1);
       lane.streak = Math.max(x.streak || 0, y.streak || 0);
@@ -138,7 +137,7 @@
             save.last = v.last;
             save.seq = v.seq || 0;
             save.updatedAt = v.updatedAt || 0;
-            ['easy', 'medium', 'hard', 'daily'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
+            ['easy', 'medium', 'hard'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
           }
         } catch(e){}
       }
@@ -181,15 +180,7 @@
 
   // ---------- board decoding ----------
   function decode(lane, level) {
-    var b;
-    if (lane === 'daily') {
-      var d = new Date();
-      var seed = d.getFullYear() * 10000 + (d.getMonth()+1)*100 + d.getDate() + level;
-      var x = Math.sin(seed) * 10000;
-      b = BOARDS.hard[Math.floor((x - Math.floor(x)) * BOARDS.hard.length)];
-    } else {
-      b = BOARDS[lane][level - 1];
-    }
+    var b = BOARDS[lane][level - 1];
     var R = b.r, C = b.c;
     var open = [];
     for (var i = 0; i < R * C; i++) open.push(true);
@@ -1023,7 +1014,7 @@
   document.getElementById('resetAll').addEventListener('click', function () {
     if (confirm('Are you sure you want to clear all your saved progress? This cannot be undone.')) {
       if (cloud && cloud.wipe) cloud.wipe();
-      save = { lane: save.lane, easy: mkLane(), medium: mkLane(), hard: mkLane(), daily: mkLane() };
+      save = { lane: save.lane, easy: mkLane(), medium: mkLane(), hard: mkLane() };
       clearResume(); persist(); renderMap();
       if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
     }
@@ -1109,7 +1100,7 @@
       clearInterval(timer);
       S = null;
       Snd.stop();
-      save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), daily: mkLane() };
+      save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
       resume = null;
       store.set(SAVE_KEY, '');
       store.set(RESUME_KEY, '');
@@ -1122,7 +1113,7 @@
       const countStars = (st) => Object.values(st.stars || {}).reduce((a, b) => a + b, 0);
       const countSolved = (st) => Object.keys(st.stars || {}).length;
       
-      stats.innerHTML = ['easy', 'medium', 'hard', 'daily'].map(lane => {
+      stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
         const data = save[lane];
         const stars = countStars(data);
         const solved = countSolved(data);
