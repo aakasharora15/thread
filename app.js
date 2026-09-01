@@ -1049,14 +1049,18 @@
   document.getElementById('reset').addEventListener('click', function () { if (S) startLevel(S.lane, S.level); });
   document.getElementById('undo').addEventListener('click', function () { if (S && !S.over) rubOut(false); });
   document.getElementById('hint').addEventListener('click', function () { if (S && !S.over) useHint(); });
-  document.getElementById('resetAll').addEventListener('click', function () {
-    if (confirm('Are you sure you want to clear all your saved progress? This cannot be undone.')) {
-      if (cloud && cloud.wipe) cloud.wipe();
-      save = { lane: save.lane, easy: mkLane(), medium: mkLane(), hard: mkLane() };
-      clearResume(); persist(); renderMap();
-      if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
-    }
-  });
+  function clearAllProgress() {
+    if (!confirm('Are you sure you want to clear all your saved progress? This cannot be undone.')) return;
+    if (cloud && cloud.wipe) cloud.wipe();
+    // keep the sound preference: it is a setting, not progress
+    save = { lane: save.lane, sound: save.sound, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+    clearResume(); persist(); renderMap();
+    if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
+    say('Saved progress cleared.');
+  }
+  document.getElementById('resetAll').addEventListener('click', clearAllProgress);
+  var profReset = document.getElementById('profReset');
+  if (profReset) profReset.addEventListener('click', clearAllProgress);
 
   var board = document.getElementById('board');
   board.addEventListener('pointerdown', onDown);

@@ -30,6 +30,7 @@ let user = null;
 let accessToken = null;
 let pushTimer = null;
 let pending = false;
+let forceOverwrite = false;   // set by a wipe: the local copy wins outright
 let wipePromise = null;
 
 function say(text, ok) {
@@ -59,6 +60,10 @@ const cloud = {
   async wipe() {
     pending = false;
     clearTimeout(pushTimer);
+    // Merging is monotonic, so until this is cleared by a write that lands,
+    // every push must overwrite rather than merge. Otherwise the next sync
+    // pulls the cleared progress straight back out of the server row.
+    forceOverwrite = true;
     if (user) {
       const emptySave = {
         lane: 'medium', seq: 999999999, updatedAt: Date.now(),
@@ -73,7 +78,15 @@ const cloud = {
         seq: 999999999,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
-      try { await wipePromise; } catch(e) {}
+      try {
+        const { error } = await wipePromise;
+        if (error) throw error;
+        forceOverwrite = false;
+      } catch (e) {
+        // leave forceOverwrite set so the next push still overwrites
+        console.error('[Wipe Error]', e);
+        if (window.handleError) window.handleError('Could not clear the server copy: ' + (e.message || e));
+      }
       wipePromise = null;
     }
   }
@@ -93,9 +106,9 @@ async function flush() {
       .from('saves').select('data, resume, seq').eq('user_id', user.id).maybeSingle();
     if (fetchErr) throw fetchErr;
 
-    const merged = row && row.data ? window.Thread.merge(local, row.data) : local;
+    const merged = (!forceOverwrite && row && row.data) ? window.Thread.merge(local, row.data) : local;
     let resume = localResume;
-    if (row && row.resume && (!resume || (row.resume.at || 0) > (resume.at || 0))) resume = row.resume;
+    if (!forceOverwrite && row && row.resume && (!resume || (row.resume.at || 0) > (resume.at || 0))) resume = row.resume;
 
     const seq = Math.max(row ? row.seq || 0 : 0, merged.seq || 0) + 1;
     merged.seq = seq;
@@ -109,6 +122,7 @@ async function flush() {
     }, { onConflict: 'user_id' });
 
     if (error) throw error;
+    forceOverwrite = false;                  // the cleared state is now on the server
     window.Thread.applyRemote(merged, resume);
   } catch (e) {
     pending = true;                        // try again on the next change

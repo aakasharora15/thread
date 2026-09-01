@@ -400,3 +400,11 @@ h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; color: var(--ink); }
 .mast h1 { font-size: 2.5rem; }
 .bar h2 { font-size: 1.5rem; }
 .card h3 { font-size: 2rem; }
+
+/* A destructive action should not look like an ordinary link, and it should
+   not change colour with the world either: --thread is blue in some worlds
+   and red in others, which is no way to signal "this deletes things". */
+.foot button.danger {
+  color: #C0392B; text-decoration: underline; text-underline-offset: 3px;
+  font-weight: 600;
+}
