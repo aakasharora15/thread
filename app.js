@@ -448,6 +448,16 @@
     var clean = S.added === S.board.cells - 1;
     var par = parTime(S.board, S.lane);
     var stars = 1 + (clean ? 1 : 0) + (clean && S.elapsed <= par ? 1 : 0);
+    
+    if (stars === 3 && window.confetti) {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#4CC0A0', '#E8C04A', '#FF7A5C'],
+        disableForReducedMotion: true
+      });
+    }
     var st = save[S.lane];
     st.stars[S.level] = Math.max(st.stars[S.level] || 0, stars);
     st.unlocked = Math.max(st.unlocked, Math.min(LEVELS, S.level + 1));

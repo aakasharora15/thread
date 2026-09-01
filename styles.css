@@ -300,3 +300,33 @@
   transform: translateY(-50%);
   pointer-events: none;
 }
+
+/* ---------- Breathing Background ---------- */
+body {
+  background: linear-gradient(135deg, var(--ground) 0%, #CDE3D6 50%, var(--ground) 100%);
+  background-size: 200% 200%;
+  animation: breathingBg 12s ease-in-out infinite;
+}
+@keyframes breathingBg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ---------- Audio Visualizer ---------- */
+.eq { display: flex; gap: 3px; align-items: flex-end; height: 16px; justify-content: center; width: 100%; }
+.eq i { 
+  width: 4px; background: currentColor; border-radius: 2px; 
+  animation: eqBounce 0.5s alternate infinite ease-in-out; 
+}
+.eq i:nth-child(1) { height: 7px; animation-delay: 0s; }
+.eq i:nth-child(2) { height: 16px; animation-delay: 0.2s; }
+.eq i:nth-child(3) { height: 10px; animation-delay: 0.4s; }
+
+@keyframes eqBounce {
+  0% { height: 4px; }
+  100% { height: 16px; }
+}
+
+/* Pause animation when sound is off */
+.snd.off .eq i { animation: none; height: 4px; transition: height 0.3s ease; }
