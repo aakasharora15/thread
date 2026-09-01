@@ -1,4 +1,4 @@
-const CACHE = 'thread-v2';
+const CACHE = 'thread-v3';
 const ASSETS = [
   './',
   'index.html',
