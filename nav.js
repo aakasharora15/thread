@@ -1,4 +1,6 @@
 export function initNav() {
+  try {
+
   const hdrs = document.querySelectorAll('.hdr');
   if (!hdrs || hdrs.length === 0) return;
   
@@ -25,13 +27,13 @@ export function initNav() {
   menu.style.position = 'absolute';
   menu.style.top = '100%';
   menu.style.right = '0';
-  menu.style.background = 'var(--paper)';
-  menu.style.border = '2px solid var(--ink)';
+  menu.style.backgroundColor = '#FFFFFF';
+  menu.style.border = '2px solid #000';
   menu.style.borderRadius = '12px';
   menu.style.padding = '10px 0';
   menu.style.minWidth = '220px';
   menu.style.zIndex = '9999';
-  menu.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
+  menu.style.boxShadow = '0 10px 40px rgba(0,0,0,0.4)';
 
   const links = [
     { name: 'Join the Numbers', url: 'index.html', desc: 'Classic' },
@@ -53,7 +55,7 @@ export function initNav() {
     
     a.innerHTML = `<div style="font-family:var(--display); font-size:18px; font-weight:${isActive?'bold':'normal'};">${l.name}</div><div style="font-size:12px; color:var(--ink-soft);">${l.desc}</div>`;
     
-    a.onmouseenter = () => { a.style.background = 'var(--ink)'; a.style.color = 'var(--paper)'; a.lastChild.style.color = 'var(--paper)'; };
+    a.onmouseenter = () => { a.style.background = 'var(--ink)'; a.style.color = 'var(--panel)'; a.lastChild.style.color = 'var(--panel)'; };
     a.onmouseleave = () => { a.style.background = 'transparent'; a.style.color = 'var(--ink)'; a.lastChild.style.color = 'var(--ink-soft)'; };
     
     menu.appendChild(a);
@@ -78,4 +80,6 @@ export function initNav() {
   } else {
     hdr.appendChild(navContainer);
   }
+
+  } catch (e) { alert("ERROR in initNav: " + e.stack); }
 }

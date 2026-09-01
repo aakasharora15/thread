@@ -43,6 +43,8 @@ const LEVELS = [
 ];
 
 export function startLoom(level) {
+  try {
+
   currentLevelIndex = level;
   const container = document.getElementById('loom-container');
   container.innerHTML = '';
@@ -95,6 +97,8 @@ export function startLoom(level) {
 
   container.appendChild(svg);
   renderLoomState();
+
+  } catch (e) { alert("ERROR in startLoom: " + e.stack); }
 }
 
 function renderLoomState() {

@@ -25,6 +25,8 @@ window.Thread = {
 };
 
 function renderSnipHub() {
+  try {
+
   initNav();
   const container = document.getElementById('snip-levels');
   if (!container) return;
@@ -44,6 +46,8 @@ function renderSnipHub() {
     };
     container.appendChild(btn);
   }
+
+  } catch (e) { alert("ERROR in renderSnipHub: " + e.stack); }
 }
 
 document.getElementById('back-snip').onclick = () => {

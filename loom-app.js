@@ -25,6 +25,8 @@ window.Thread = {
 };
 
 function renderLoomHub() {
+  try {
+
   initNav();
   const container = document.getElementById('loom-levels');
   if (!container) return;
@@ -44,6 +46,8 @@ function renderLoomHub() {
     };
     container.appendChild(btn);
   }
+
+  } catch (e) { alert("ERROR in renderLoomHub: " + e.stack); }
 }
 
 document.getElementById('back-loom').onclick = () => {

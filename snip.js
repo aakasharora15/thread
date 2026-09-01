@@ -45,6 +45,8 @@ const LEVELS = [
 ];
 
 export function startSnip(level) {
+  try {
+
   currentLevelIndex = level;
   const container = document.getElementById('snip-container');
   container.innerHTML = '';
@@ -220,6 +222,8 @@ export function startSnip(level) {
       }
     });
   });
+
+  } catch (e) { alert("ERROR in startSnip: " + e.stack); }
 }
 
 export function stopSnip() {
