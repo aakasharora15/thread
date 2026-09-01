@@ -15,7 +15,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="mascot.png">
 <link rel="stylesheet" href="styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
 
@@ -61,22 +60,11 @@
   <!-- ================= home ================= -->
   <section class="screen on" id="home">
     <div class="hdr">
-      
-      <div style="display:flex; gap:10px; margin-right:auto; padding-left:16px;">
-        <a href="index.html" style="color:var(--ink); text-decoration:none; font-weight:bold; font-size:14px;">Thread</a>
-        <a href="snip.html" style="color:var(--ink-soft); text-decoration:none; font-weight:bold; font-size:14px;">Snip</a>
-        <a href="loom.html" style="color:var(--ink-soft); text-decoration:none; font-weight:bold; font-size:14px;">Loom</a>
-      </div>
       <button class="who" id="who" type="button" hidden>Your profile</button>
-
       <button class="icon snd" id="sndHome" aria-pressed="true" aria-label="Sound on"><div class="eq"><i></i><i></i><i></i></div></button>
       <button class="icon" id="signOut" aria-label="Sign out" title="Sign out">&#8631;</button>
     </div>
-    
-    
-    
-      <div class="mast">
-
+    <div class="mast">
       <h1 class="logo">
         <svg class="wordmark" viewBox="0 0 1502.83 351.88" role="img" aria-label="Thread"><use href="#logo"/></svg>
         <span>one line, no gaps</span>
@@ -110,9 +98,7 @@
     <div class="pips" id="pips" aria-label="Worlds"></div>
     <button class="cta" id="cta"><span id="ctaLabel">Play level 1</span><span>&rarr;</span></button>
 
-    
     <div class="foot">
-
       <button id="resetAll">Clear saved progress</button>
       <details class="rules">
         <summary>How it works</summary>
@@ -131,11 +117,7 @@
   </section>
 
   <!-- ================= play ================= -->
-  
-  
-  
   <section class="screen" id="play">
-
     <div class="top">
       <button class="icon" id="back" aria-label="Back to level list">&larr;</button>
       <div class="lv">Level <span id="lvNum">1</span><em id="lvLane">Medium</em></div>
@@ -231,8 +213,6 @@
 <script src="config.js"></script>
 <script src="logic.js"></script>
 <script type="module" src="app.js"></script>
-<script type="module" src="snip.js"></script>
-<script type="module" src="loom.js"></script>
 <script type="module" src="sync.js"></script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 <div id="syncToast" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--cell); padding:8px 16px; border-radius:20px; font-size:12px; font-family:var(--body); opacity:0; pointer-events:none; transition:opacity 0.3s; z-index:999;">Syncing...</div>

@@ -86,7 +86,7 @@ import { Toast } from './toast.js';
   var SAVE_KEY = 'thread:save:v1';
   var RESUME_KEY = 'thread:resume:v1';
 
-  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkLane(), loom: mkLane() };
+  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
   Audio.init(function () { return { soundEnabled: save.sound !== false }; });
@@ -759,77 +759,6 @@ import { Toast } from './toast.js';
   function onUp() { if (S) S.dragging = false; }
 
   // ---------- screens ----------
-  
-  const tabClassic = document.getElementById('tab-classic');
-  const tabSnip = document.getElementById('tab-snip');
-  const tabLoom = document.getElementById('tab-loom');
-  const viewClassic = document.getElementById('view-classic');
-  const viewSnip = document.getElementById('view-snip');
-  const viewLoom = document.getElementById('view-loom');
-
-  function switchTab(tabName) {
-    tabClassic.setAttribute('aria-pressed', tabName === 'classic');
-    tabSnip.setAttribute('aria-pressed', tabName === 'snip');
-    tabLoom.setAttribute('aria-pressed', tabName === 'loom');
-    
-    viewClassic.style.display = tabName === 'classic' ? 'block' : 'none';
-    viewSnip.style.display = tabName === 'snip' ? 'block' : 'none';
-    viewLoom.style.display = tabName === 'loom' ? 'block' : 'none';
-    
-    if (tabName === 'classic') 
-        const path = window.location.pathname || "";
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
-
-    if (tabName === 'snip') renderSnipHub();
-    if (tabName === 'loom') renderLoomHub();
-  }
-
-  if (tabClassic) tabClassic.onclick = () => switchTab('classic');
-  if (tabSnip) tabSnip.onclick = () => switchTab('snip');
-  if (tabLoom) tabLoom.onclick = () => switchTab('loom');
-
-  function renderSnipHub() {
-    const container = document.getElementById('snip-levels');
-    if (!container) return;
-    container.innerHTML = '';
-    // Build 5 starter levels
-    for (let i = 1; i <= 5; i++) {
-      const btn = document.createElement('button');
-      btn.className = 'lane';
-      btn.style.padding = '15px 0';
-      const isUnlocked = i <= (save.snip.unlocked || 1);
-      btn.innerHTML = '<b>' + i + '</b>' + (save.snip.stars[i-1] ? ' ★' : '');
-      btn.disabled = !isUnlocked;
-      if (!isUnlocked) btn.style.opacity = '0.3';
-      btn.onclick = () => window.startSnip(i);
-      container.appendChild(btn);
-    }
-  }
-
-  function renderLoomHub() {
-    const container = document.getElementById('loom-levels');
-    if (!container) return;
-    container.innerHTML = '';
-    // Build 5 starter levels
-    for (let i = 1; i <= 5; i++) {
-      const btn = document.createElement('button');
-      btn.className = 'lane';
-      btn.style.padding = '15px 0';
-      const isUnlocked = i <= (save.loom.unlocked || 1);
-      btn.innerHTML = '<b>' + i + '</b>' + (save.loom.stars[i-1] ? ' ★' : '');
-      btn.disabled = !isUnlocked;
-      if (!isUnlocked) btn.style.opacity = '0.3';
-      btn.onclick = () => window.startLoom(i);
-      container.appendChild(btn);
-    }
-  }
-
   function show(id) { applyCosmetics();
     const update = () => {
       ['home', 'play', 'profile'].forEach(function (k) { 
@@ -851,16 +780,7 @@ import { Toast } from './toast.js';
   function setWorld(i) {
     world = Math.max(0, Math.min(THEMES.length - 1, i));
     worldPinned = true;
-    
-        const path = window.location.pathname;
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
-
+    renderMap();
   }
 
   function renderMap() {
@@ -978,16 +898,7 @@ import { Toast } from './toast.js';
 
   // ---------- wiring ----------
   document.querySelectorAll('.lane').forEach(function (btn) {
-    btn.addEventListener('click', function () { save.lane = btn.dataset.lane; worldPinned = false; persist(); 
-        const path = window.location.pathname;
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
- });
+    btn.addEventListener('click', function () { save.lane = btn.dataset.lane; worldPinned = false; persist(); renderMap(); });
   });
   document.getElementById('prevW').addEventListener('click', function () { setWorld(world - 1); });
   document.getElementById('nextW').addEventListener('click', function () { setWorld(world + 1); });
@@ -1012,16 +923,7 @@ import { Toast } from './toast.js';
     startLevel(save.lane, pick.level, pick.snap);
   });
   document.getElementById('back').addEventListener('click', function () {
-    saveResume(true); clearInterval(timer); S = null; 
-        const path = window.location.pathname;
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
- show('home');
+    saveResume(true); clearInterval(timer); S = null; renderMap(); show('home');
   });
 
   var profBack = document.getElementById('profBack');
@@ -1050,18 +952,9 @@ import { Toast } from './toast.js';
     if (cloud && cloud.wipe) cloud.wipe();
     // keep the sound preference: it is a setting, not progress
     save = { lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
-             easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkLane(), loom: mkLane() };
+             easy: mkLane(), medium: mkLane(), hard: mkLane() };
     applyCosmetics();
-    clearResume(); persist(); 
-        const path = window.location.pathname;
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
-
+    clearResume(); persist(); renderMap();
     if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
     say('Saved progress cleared.');
   }
@@ -1083,30 +976,12 @@ import { Toast } from './toast.js';
   document.getElementById('ovNext').addEventListener('click', function () {
     document.getElementById('over').classList.remove('on');
     if (S.won && S.level < LEVELS) startLevel(S.lane, S.level + 1);
-    else if (S.won) { 
-        const path = window.location.pathname;
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
- show('home'); }
-    else { 
-        const path = window.location.pathname;
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
- show('home'); }
+    else if (S.won) { renderMap(); show('home'); }
+    else { renderMap(); show('home'); }
   });
 
   document.addEventListener('keydown', function (e) {
-    if (!S || S.over || (document.getElementById('play') || document.body).classList.contains('on') === false) return;
+    if (!S || S.over || document.getElementById('play').classList.contains('on') === false) return;
     var b = S.board, head = S.line[S.line.length - 1], to = null;
     if (e.key === 'ArrowUp') to = head - b.C;
     else if (e.key === 'ArrowDown') to = head + b.C;
@@ -1134,48 +1009,12 @@ import { Toast } from './toast.js';
   });
 
   // ---------- the handle sync.js drives ----------
-    function winSnip(levelIndex) {
-    if (!save.snip.stars[levelIndex - 1]) {
-      save.snip.stars[levelIndex - 1] = 1;
-    }
-    if (save.snip.unlocked <= levelIndex) {
-      save.snip.unlocked = levelIndex + 1;
-    }
-    persist();
-    renderSnipHub();
-    if (window.Thread.renderProfile) window.Thread.renderProfile();
-  }
-
-  function winLoom(levelIndex) {
-    if (!save.loom.stars[levelIndex - 1]) {
-      save.loom.stars[levelIndex - 1] = 1;
-    }
-    if (save.loom.unlocked <= levelIndex) {
-      save.loom.unlocked = levelIndex + 1;
-    }
-    persist();
-    renderLoomHub();
-    if (window.Thread.renderProfile) window.Thread.renderProfile();
-  }
-
-window.Thread = {
-  show: show,
-  winSnip: winSnip,
-  winLoom: winLoom,
+  window.Thread = {
     boot: function () {
       return load().then(function () {
         soundUI();
         worldPinned = false;
-        
-        const path = window.location.pathname;
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
-
+        renderMap();
         if (store.kind === 'memory') {
           document.querySelector('.foot').insertAdjacentHTML('afterbegin',
             '<p style="margin:0 0 8px">This browser is blocking saved data, so progress will not survive a refresh.</p>');
@@ -1200,16 +1039,7 @@ window.Thread = {
         store.set(RESUME_KEY, JSON.stringify(resume));
       }
       applyCosmetics();
-      if (!S) { soundUI(); worldPinned = false; 
-        const path = window.location.pathname;
-        if (path.includes('snip.html')) {
-          renderSnipHub();
-        } else if (path.includes('loom.html')) {
-          renderLoomHub();
-        } else {
-          renderMap();
-        }
- }
+      if (!S) { soundUI(); worldPinned = false; renderMap(); }
     },
     signedOut: function () {
       cloud = null;
@@ -1217,7 +1047,7 @@ window.Thread = {
       S = null;
       Audio.stop();
       save = { lane: 'medium', seq: 0, updatedAt: 0, cosmetics: { color: 'default', audio: 'default' },
-               easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkLane(), loom: mkLane() };
+               easy: mkLane(), medium: mkLane(), hard: mkLane() };
       applyCosmetics();
       resume = null;
       store.set(SAVE_KEY, '');
@@ -1228,20 +1058,41 @@ window.Thread = {
       const stats = document.getElementById('profStats');
       if (!stats) return;
       
-      const countStars = (st) => st ? Object.values(st.stars || {}).reduce((a, b) => a + b, 0) : 0;
-      const countSolved = (st) => st ? Object.keys(st.stars || {}).length : 0;
+      const countStars = (st) => Object.values(st.stars || {}).reduce((a, b) => a + b, 0);
+      const countSolved = (st) => Object.keys(st.stars || {}).length;
       
       
-      // Unlocked looks.
+      // Unlocked looks. The buttons are hidden, not greyed, until they are
+      // earned, so the profile never advertises a locked reward.
       var c = cosmetics();
-      var totalStars = ['easy', 'medium', 'hard', 'snip', 'loom'].reduce(function (acc, lane) {
+      var totalStars = ['easy', 'medium', 'hard'].reduce(function (acc, lane) {
         return acc + countStars(save[lane]);
+      }, 0);
+      var LOCKS = { themePink: 20, themeGold: 50, audio8Bit: 100 };
+      var nextAt = 0;
+      Object.keys(LOCKS).forEach(function (id) {
+        var b = document.getElementById(id);
+        var earned = totalStars >= LOCKS[id];
+        if (b) b.hidden = !earned;
+        if (!earned && (!nextAt || LOCKS[id] < nextAt)) nextAt = LOCKS[id];
+      });
+      var note = document.getElementById('profRewardsNote');
+      if (note) note.textContent = nextAt
+        ? (nextAt - totalStars) + ' more ' + (nextAt - totalStars === 1 ? 'star' : 'stars') + ' unlocks the next look.'
+        : 'Every look is unlocked. Nicely done.';
+
+      document.querySelectorAll('#profRewards .swatch').forEach(function (b) {
+        var kind = b.dataset.color ? 'color' : 'audio';
+        b.classList.toggle('on', c[kind] === b.dataset[kind]);
+        b.onclick = function () {
+          c[kind] = b.dataset[kind];
           persist();
           applyCosmetics();
           window.Thread.renderProfile();
         };
       });
-      stats.innerHTML = ['easy', 'medium', 'hard', 'snip', 'loom'].map(lane => {
+
+      stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
         const data = save[lane];
         const stars = countStars(data);
         const solved = countSolved(data);
