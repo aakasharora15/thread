@@ -158,9 +158,9 @@ async function signedIn(session) {
     hideSplash();
   }
   
-  // After login, show the profile page
+  // After login, show the home page
   window.Thread.renderProfile();
-  window.Thread.show('profile');
+  window.Thread.show('home');
 }
 
 async function submit() {
