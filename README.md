@@ -105,13 +105,29 @@ email.
 index.html            markup, the sign in screen, the head
 styles.css            all styling, including the twenty world palettes' hooks
 boards.js             the 600 boards, pre-generated and verified
+logic.js              the pure logic: merging saves, decoding and checking boards
 app.js                the game: rules, drawing, sound, local saving
 sync.js               sign in and server saving
-config.js             your Supabase URL and anon key
+sw.js                 offline caching
+config.js             your Supabase URL, anon key and support address
 schema.sql            the table, its security policies and the progress view
 manifest.webmanifest  Home Screen install
+mascot.png            the splash artwork
 icons/                app icons
+tests/                checks that run under plain node
 ```
+
+## Running the checks
+
+```
+node --test tests/*.test.js
+```
+
+No dependencies and no build step: `logic.js` holds the parts that do not touch
+the DOM, so the merge rules and all 600 boards can be checked directly. The
+board test decodes every level and confirms the shipped solution fills each
+open square exactly once, never crosses a wall, and meets the numbers in order.
+Run it after regenerating `boards.js`.
 
 ## Regenerating the levels
 

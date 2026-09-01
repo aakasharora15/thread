@@ -95,6 +95,7 @@ async function flush() {
     if (error) throw error;
     window.Thread.applyRemote(merged, resume);
   } catch (e) {
+    pending = true;                        // try again on the next change
     console.error('[Sync Error]', e);
     if (window.handleError) window.handleError('Sync failed: ' + e.message);
   } finally {
@@ -187,8 +188,7 @@ async function signedIn(session) {
   const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
   whoEl.textContent = 'Hello ' + capitalized;
   whoEl.title = user.email;
-  whoEl.style.cursor = 'pointer';
-  whoEl.style.textDecoration = 'underline';
+  whoEl.hidden = false;
   
   gate.classList.add('done');
   showSplash(capitalized);                        // greets by name, or just the artwork
@@ -262,8 +262,7 @@ document.getElementById('signOut').addEventListener('click', async () => {
   window.Thread.signedOut();
   whoEl.textContent = '';
   whoEl.removeAttribute('title');
-  whoEl.style.textDecoration = 'none';
-  whoEl.style.cursor = 'default';
+  whoEl.hidden = true;
   passEl.value = '';
   nameEl.value = '';
   dobEl.value = '';

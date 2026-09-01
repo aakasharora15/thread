@@ -1,6 +1,24 @@
 (function () {
   "use strict";
-  var BOARDS = window.THREAD_BOARDS;
+  var L = window.ThreadLogic;
+  var mkLane = L.mkLane, mergeSaves = L.mergeSaves;
+  // boards.js is 89 KB of level data that the home screen never needs, so it
+  // is fetched on demand and then warmed in the background after boot.
+  var BOARDS = window.THREAD_BOARDS || null;
+  var boardsPromise = null;
+  function ensureBoards() {
+    if (BOARDS) return Promise.resolve();
+    if (!boardsPromise) {
+      boardsPromise = new Promise(function (res, rej) {
+        var sc = document.createElement('script');
+        sc.src = 'boards.js';
+        sc.onload = function () { BOARDS = window.THREAD_BOARDS; res(); };
+        sc.onerror = function () { boardsPromise = null; rej(new Error('boards.js failed to load')); };
+        document.head.appendChild(sc);
+      });
+    }
+    return boardsPromise;
+  }
   function haptic(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
 
   var LANE = {
@@ -70,32 +88,7 @@
   var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
-  function mkLane() { return { unlocked: 1, stars: {}, streak: 0, bank: 0 }; }
 
-  // Progress only ever moves forward, so merging two copies means taking the
-  // higher of each value. Nobody's run can be eaten by another device.
-  function mergeSaves(a, b) {
-    if (!a) return b;
-    if (!b) return a;
-    var out = { seq: Math.max(a.seq || 0, b.seq || 0), updatedAt: Math.max(a.updatedAt || 0, b.updatedAt || 0) };
-    var newer = (b.updatedAt || 0) >= (a.updatedAt || 0) ? b : a;
-    out.lane = newer.lane || a.lane || 'medium';
-    out.sound = newer.sound;
-    out.last = newer.last || a.last || b.last;
-    ['easy', 'medium', 'hard'].forEach(function (k) {
-      var x = a[k] || mkLane(), y = b[k] || mkLane(), lane = mkLane();
-      lane.unlocked = Math.max(x.unlocked || 1, y.unlocked || 1);
-      lane.streak = Math.max(x.streak || 0, y.streak || 0);
-      lane.bank = Math.max(x.bank || 0, y.bank || 0);
-      lane.stars = {};
-      Object.keys(x.stars || {}).forEach(function (l) { lane.stars[l] = x.stars[l]; });
-      Object.keys(y.stars || {}).forEach(function (l) {
-        lane.stars[l] = Math.max(lane.stars[l] || 0, y.stars[l]);
-      });
-      out[k] = lane;
-    });
-    return out;
-  }
 
   // ---------- storage ----------
   // Inside Claude the host provides window.storage. Opened as a plain file, or
@@ -179,31 +172,7 @@
   }
 
   // ---------- board decoding ----------
-  function decode(lane, level) {
-    var b = BOARDS[lane][level - 1];
-    var R = b.r, C = b.c;
-    var open = [];
-    for (var i = 0; i < R * C; i++) open.push(true);
-    if (b.k) {
-      for (var r = R - b.k[0]; r < R; r++) for (var c = C - b.k[1]; c < C; c++) open[r * C + c] = false;
-    }
-    var path = [b.s];
-    for (var d = 0; d < b.d.length; d++) {
-      var ch = b.d[d], last = path[path.length - 1];
-      path.push(last + (ch === 'R' ? 1 : ch === 'L' ? -1 : ch === 'D' ? C : -C));
-    }
-    var cp = new Array(R * C).fill(0);
-    b.q.forEach(function (pos, k) { cp[path[pos]] = k + 1; });
-    var walls = new Set();
-    b.w.forEach(function (code) {
-      var lo = code >> 1, hi = (code & 1) ? lo + C : lo + 1;
-      walls.add(lo + ',' + hi);
-    });
-    return {
-      R: R, C: C, open: open, cp: cp, cpCount: b.q.length, walls: walls,
-      cells: path.length, solution: path, start: path[0], end: path[path.length - 1], index: b.x
-    };
-  }
+  function decode(lane, level) { return L.decodeBoard(BOARDS[lane][level - 1]); }
   function wallKey(a, b) { return a < b ? a + ',' + b : b + ',' + a; }
 
   function parTime(board, lane) {
@@ -219,12 +188,17 @@
   var S = null;
 
   function startLevel(lane, level, snap) {
+    return ensureBoards().then(function () { return startLevelNow(lane, level, snap); },
+      function () { say('Could not load the levels. Check your connection and try again.'); });
+  }
+  function startLevelNow(lane, level, snap) {
     var board = decode(lane, level);
     var cd = lane === 'hard' ? countdownFor(level) : 0;
     var valid = snap && snap.lane === lane && snap.level === level && snap.line && snap.line.length &&
       snap.line[0] === board.start && snap.line.every(function (c) { return board.open[c]; });
     S = {
       lane: lane, level: level, board: board,
+      hintAt: null, hintFrom: null,
       line: valid ? snap.line.slice() : [board.start],
       added: valid ? snap.added : 0,
       hints: valid ? snap.hints : LANE[lane].hints + (lane === 'hard' ? save.hard.bank : 0),
@@ -379,6 +353,7 @@
   }
 
   function extend(to) {
+    S.hintAt = null;
     var head = S.line[S.line.length - 1];
     if (!legal(head, to)) return false;
     if (LANE[S.lane].guard) {
@@ -397,6 +372,7 @@
     return true;
   }
   function rubOut(byDrag) {
+    S.hintAt = null;
     if (S.line.length <= 1) return;
     if (!byDrag && S.undosLeft <= 0) { say('No taps left. Drag back along the line instead.'); return; }
     if (!byDrag && S.undosLeft !== Infinity) S.undosLeft--;
@@ -515,13 +491,17 @@
       if (S.lane === 'hard') { save.hard.bank = Math.max(0, save.hard.bank - 1); persist(); }
       var cut = S.line.length - i;
       S.line = S.line.slice(0, i);
+      S.hintAt = S.line[S.line.length - 1];
+      S.hintFrom = null;
       say('The line went wrong ' + cut + ' ' + (cut === 1 ? 'square' : 'squares') + ' back. Rubbed out to the last correct square.');
       afterMove();
       return;
     }
     if (i >= sol.length) return;
     S.hints--;
+    S.hintFrom = S.line[S.line.length - 1];
     S.line.push(sol[i]); S.added++;
+    S.hintAt = sol[i];
     if (S.lane === 'hard') { save.hard.bank = Math.max(0, save.hard.bank - 1); persist(); }
     say('One square added.');
     afterMove();
@@ -705,6 +685,32 @@
       });
       t.textContent = label;
       svg.appendChild(t);
+    }
+    // the hint changes the board silently otherwise, so say where it acted
+    if (S.hintAt !== null && S.hintAt !== undefined) {
+      var hx = (S.hintAt % b.C) + 0.5, hy = Math.floor(S.hintAt / b.C) + 0.5;
+      var mark = el('circle', {
+        cx: hx, cy: hy, r: 0.42, fill: 'none',
+        stroke: 'var(--mint)', 'stroke-width': 0.08
+      });
+      mark.setAttribute('class', 'pulse');
+      svg.appendChild(mark);
+      if (S.hintFrom !== null && S.hintFrom !== undefined) {
+        var fx = (S.hintFrom % b.C) + 0.5, fy = Math.floor(S.hintFrom / b.C) + 0.5;
+        var ux = hx - fx, uy = hy - fy;
+        // an arrowhead just inside the hinted square, pointing the way in
+        var tipX = hx - ux * 0.30, tipY = hy - uy * 0.30;
+        var backX = tipX - ux * 0.20, backY = tipY - uy * 0.20;
+        var perpX = -uy * 0.13, perpY = ux * 0.13;
+        var head = el('path', {
+          d: 'M' + tipX + ' ' + tipY +
+             ' L' + (backX + perpX) + ' ' + (backY + perpY) +
+             ' L' + (backX - perpX) + ' ' + (backY - perpY) + ' Z',
+          fill: 'var(--mint)'
+        });
+        head.setAttribute('class', 'pulse');
+        svg.appendChild(head);
+      }
     }
     svg.setAttribute('aria-label', 'Board ' + b.R + ' by ' + b.C + '. ' + S.line.length + ' of ' + b.cells + ' squares filled. Next number ' + (nxt > b.cpCount ? 'none' : nxt) + '.');
   }
@@ -1110,6 +1116,9 @@
             '<p style="margin:0 0 8px">This browser is blocking saved data, so progress will not survive a refresh.</p>');
         }
         show('home');
+        var warm = function () { ensureBoards().catch(function () {}); };
+        if (window.requestIdleCallback) window.requestIdleCallback(warm, { timeout: 2500 });
+        else setTimeout(warm, 400);
       });
     },
     setCloud: function (c) { cloud = c; },
