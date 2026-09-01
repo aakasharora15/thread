@@ -86,7 +86,7 @@ import { Toast } from './toast.js';
   var SAVE_KEY = 'thread:save:v1';
   var RESUME_KEY = 'thread:resume:v1';
 
-  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkLane(), loom: mkLane() };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
   Audio.init(function () { return { soundEnabled: save.sound !== false }; });
@@ -759,6 +759,68 @@ import { Toast } from './toast.js';
   function onUp() { if (S) S.dragging = false; }
 
   // ---------- screens ----------
+  
+  const tabClassic = document.getElementById('tab-classic');
+  const tabSnip = document.getElementById('tab-snip');
+  const tabLoom = document.getElementById('tab-loom');
+  const viewClassic = document.getElementById('view-classic');
+  const viewSnip = document.getElementById('view-snip');
+  const viewLoom = document.getElementById('view-loom');
+
+  function switchTab(tabName) {
+    tabClassic.setAttribute('aria-pressed', tabName === 'classic');
+    tabSnip.setAttribute('aria-pressed', tabName === 'snip');
+    tabLoom.setAttribute('aria-pressed', tabName === 'loom');
+    
+    viewClassic.style.display = tabName === 'classic' ? 'block' : 'none';
+    viewSnip.style.display = tabName === 'snip' ? 'block' : 'none';
+    viewLoom.style.display = tabName === 'loom' ? 'block' : 'none';
+    
+    if (tabName === 'classic') renderMap();
+    if (tabName === 'snip') renderSnipHub();
+    if (tabName === 'loom') renderLoomHub();
+  }
+
+  if (tabClassic) tabClassic.onclick = () => switchTab('classic');
+  if (tabSnip) tabSnip.onclick = () => switchTab('snip');
+  if (tabLoom) tabLoom.onclick = () => switchTab('loom');
+
+  function renderSnipHub() {
+    const container = document.getElementById('snip-levels');
+    if (!container) return;
+    container.innerHTML = '';
+    // Build 5 starter levels
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'lane';
+      btn.style.padding = '15px 0';
+      const isUnlocked = i <= (save.snip.unlocked || 1);
+      btn.innerHTML = '<b>' + i + '</b>' + (save.snip.stars[i-1] ? ' ★' : '');
+      btn.disabled = !isUnlocked;
+      if (!isUnlocked) btn.style.opacity = '0.3';
+      btn.onclick = () => window.startSnip(i);
+      container.appendChild(btn);
+    }
+  }
+
+  function renderLoomHub() {
+    const container = document.getElementById('loom-levels');
+    if (!container) return;
+    container.innerHTML = '';
+    // Build 5 starter levels
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'lane';
+      btn.style.padding = '15px 0';
+      const isUnlocked = i <= (save.loom.unlocked || 1);
+      btn.innerHTML = '<b>' + i + '</b>' + (save.loom.stars[i-1] ? ' ★' : '');
+      btn.disabled = !isUnlocked;
+      if (!isUnlocked) btn.style.opacity = '0.3';
+      btn.onclick = () => window.startLoom(i);
+      container.appendChild(btn);
+    }
+  }
+
   function show(id) { applyCosmetics();
     const update = () => {
       ['home', 'play', 'profile'].forEach(function (k) { 
@@ -952,7 +1014,7 @@ import { Toast } from './toast.js';
     if (cloud && cloud.wipe) cloud.wipe();
     // keep the sound preference: it is a setting, not progress
     save = { lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
-             easy: mkLane(), medium: mkLane(), hard: mkLane() };
+             easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkLane(), loom: mkLane() };
     applyCosmetics();
     clearResume(); persist(); renderMap();
     if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
@@ -1009,7 +1071,34 @@ import { Toast } from './toast.js';
   });
 
   // ---------- the handle sync.js drives ----------
-  window.Thread = {
+    function winSnip(levelIndex) {
+    if (!save.snip.stars[levelIndex - 1]) {
+      save.snip.stars[levelIndex - 1] = 1;
+    }
+    if (save.snip.unlocked <= levelIndex) {
+      save.snip.unlocked = levelIndex + 1;
+    }
+    persist();
+    renderSnipHub();
+    if (window.Thread.renderProfile) window.Thread.renderProfile();
+  }
+
+  function winLoom(levelIndex) {
+    if (!save.loom.stars[levelIndex - 1]) {
+      save.loom.stars[levelIndex - 1] = 1;
+    }
+    if (save.loom.unlocked <= levelIndex) {
+      save.loom.unlocked = levelIndex + 1;
+    }
+    persist();
+    renderLoomHub();
+    if (window.Thread.renderProfile) window.Thread.renderProfile();
+  }
+
+window.Thread = {
+  show: show,
+  winSnip: winSnip,
+  winLoom: winLoom,
     boot: function () {
       return load().then(function () {
         soundUI();
@@ -1047,7 +1136,7 @@ import { Toast } from './toast.js';
       S = null;
       Audio.stop();
       save = { lane: 'medium', seq: 0, updatedAt: 0, cosmetics: { color: 'default', audio: 'default' },
-               easy: mkLane(), medium: mkLane(), hard: mkLane() };
+               easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkLane(), loom: mkLane() };
       applyCosmetics();
       resume = null;
       store.set(SAVE_KEY, '');
@@ -1062,37 +1151,16 @@ import { Toast } from './toast.js';
       const countSolved = (st) => Object.keys(st.stars || {}).length;
       
       
-      // Unlocked looks. The buttons are hidden, not greyed, until they are
-      // earned, so the profile never advertises a locked reward.
+      // Unlocked looks.
       var c = cosmetics();
-      var totalStars = ['easy', 'medium', 'hard'].reduce(function (acc, lane) {
+      var totalStars = ['easy', 'medium', 'hard', 'snip', 'loom'].reduce(function (acc, lane) {
         return acc + countStars(save[lane]);
-      }, 0);
-      var LOCKS = { themePink: 20, themeGold: 50, audio8Bit: 100 };
-      var nextAt = 0;
-      Object.keys(LOCKS).forEach(function (id) {
-        var b = document.getElementById(id);
-        var earned = totalStars >= LOCKS[id];
-        if (b) b.hidden = !earned;
-        if (!earned && (!nextAt || LOCKS[id] < nextAt)) nextAt = LOCKS[id];
-      });
-      var note = document.getElementById('profRewardsNote');
-      if (note) note.textContent = nextAt
-        ? (nextAt - totalStars) + ' more ' + (nextAt - totalStars === 1 ? 'star' : 'stars') + ' unlocks the next look.'
-        : 'Every look is unlocked. Nicely done.';
-
-      document.querySelectorAll('#profRewards .swatch').forEach(function (b) {
-        var kind = b.dataset.color ? 'color' : 'audio';
-        b.classList.toggle('on', c[kind] === b.dataset[kind]);
-        b.onclick = function () {
-          c[kind] = b.dataset[kind];
           persist();
           applyCosmetics();
           window.Thread.renderProfile();
         };
       });
-
-      stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
+      stats.innerHTML = ['easy', 'medium', 'hard', 'snip', 'loom'].map(lane => {
         const data = save[lane];
         const stars = countStars(data);
         const solved = countSolved(data);
