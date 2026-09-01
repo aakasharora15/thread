@@ -776,7 +776,16 @@ import { Toast } from './toast.js';
     viewSnip.style.display = tabName === 'snip' ? 'block' : 'none';
     viewLoom.style.display = tabName === 'loom' ? 'block' : 'none';
     
-    if (tabName === 'classic') renderMap();
+    if (tabName === 'classic') 
+        const path = window.location.pathname || "";
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+
     if (tabName === 'snip') renderSnipHub();
     if (tabName === 'loom') renderLoomHub();
   }
@@ -842,7 +851,16 @@ import { Toast } from './toast.js';
   function setWorld(i) {
     world = Math.max(0, Math.min(THEMES.length - 1, i));
     worldPinned = true;
-    renderMap();
+    
+        const path = window.location.pathname;
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+
   }
 
   function renderMap() {
@@ -960,7 +978,16 @@ import { Toast } from './toast.js';
 
   // ---------- wiring ----------
   document.querySelectorAll('.lane').forEach(function (btn) {
-    btn.addEventListener('click', function () { save.lane = btn.dataset.lane; worldPinned = false; persist(); renderMap(); });
+    btn.addEventListener('click', function () { save.lane = btn.dataset.lane; worldPinned = false; persist(); 
+        const path = window.location.pathname;
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+ });
   });
   document.getElementById('prevW').addEventListener('click', function () { setWorld(world - 1); });
   document.getElementById('nextW').addEventListener('click', function () { setWorld(world + 1); });
@@ -985,7 +1012,16 @@ import { Toast } from './toast.js';
     startLevel(save.lane, pick.level, pick.snap);
   });
   document.getElementById('back').addEventListener('click', function () {
-    saveResume(true); clearInterval(timer); S = null; renderMap(); show('home');
+    saveResume(true); clearInterval(timer); S = null; 
+        const path = window.location.pathname;
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+ show('home');
   });
 
   var profBack = document.getElementById('profBack');
@@ -1016,7 +1052,16 @@ import { Toast } from './toast.js';
     save = { lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
              easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkLane(), loom: mkLane() };
     applyCosmetics();
-    clearResume(); persist(); renderMap();
+    clearResume(); persist(); 
+        const path = window.location.pathname;
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+
     if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
     say('Saved progress cleared.');
   }
@@ -1038,12 +1083,30 @@ import { Toast } from './toast.js';
   document.getElementById('ovNext').addEventListener('click', function () {
     document.getElementById('over').classList.remove('on');
     if (S.won && S.level < LEVELS) startLevel(S.lane, S.level + 1);
-    else if (S.won) { renderMap(); show('home'); }
-    else { renderMap(); show('home'); }
+    else if (S.won) { 
+        const path = window.location.pathname;
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+ show('home'); }
+    else { 
+        const path = window.location.pathname;
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+ show('home'); }
   });
 
   document.addEventListener('keydown', function (e) {
-    if (!S || S.over || document.getElementById('play').classList.contains('on') === false) return;
+    if (!S || S.over || (document.getElementById('play') || document.body).classList.contains('on') === false) return;
     var b = S.board, head = S.line[S.line.length - 1], to = null;
     if (e.key === 'ArrowUp') to = head - b.C;
     else if (e.key === 'ArrowDown') to = head + b.C;
@@ -1103,7 +1166,16 @@ window.Thread = {
       return load().then(function () {
         soundUI();
         worldPinned = false;
-        renderMap();
+        
+        const path = window.location.pathname;
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+
         if (store.kind === 'memory') {
           document.querySelector('.foot').insertAdjacentHTML('afterbegin',
             '<p style="margin:0 0 8px">This browser is blocking saved data, so progress will not survive a refresh.</p>');
@@ -1128,7 +1200,16 @@ window.Thread = {
         store.set(RESUME_KEY, JSON.stringify(resume));
       }
       applyCosmetics();
-      if (!S) { soundUI(); worldPinned = false; renderMap(); }
+      if (!S) { soundUI(); worldPinned = false; 
+        const path = window.location.pathname;
+        if (path.includes('snip.html')) {
+          renderSnipHub();
+        } else if (path.includes('loom.html')) {
+          renderLoomHub();
+        } else {
+          renderMap();
+        }
+ }
     },
     signedOut: function () {
       cloud = null;
@@ -1147,8 +1228,8 @@ window.Thread = {
       const stats = document.getElementById('profStats');
       if (!stats) return;
       
-      const countStars = (st) => Object.values(st.stars || {}).reduce((a, b) => a + b, 0);
-      const countSolved = (st) => Object.keys(st.stars || {}).length;
+      const countStars = (st) => st ? Object.values(st.stars || {}).reduce((a, b) => a + b, 0) : 0;
+      const countSolved = (st) => st ? Object.keys(st.stars || {}).length : 0;
       
       
       // Unlocked looks.

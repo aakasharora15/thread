@@ -65,7 +65,7 @@
       <div style="display:flex; gap:10px; margin-right:auto; padding-left:16px;">
         <a href="index.html" style="color:var(--ink); text-decoration:none; font-weight:bold; font-size:14px;">Thread</a>
         <a href="snip.html" style="color:var(--ink-soft); text-decoration:none; font-weight:bold; font-size:14px;">Snip</a>
-        <a href="loom.html" style="color:var(--ink-soft); text-decoration:none; font-weight:bold; font-size:14px;">Loom</a>
+        <a href="loom.html" style="color:var(--ink); text-decoration:none; font-weight:bold; font-size:14px;">Loom</a>
       </div>
       <button class="who" id="who" type="button" hidden>Your profile</button>
 
@@ -74,42 +74,12 @@
     </div>
     
     
-    
-      <div class="mast">
-
-      <h1 class="logo">
-        <svg class="wordmark" viewBox="0 0 1502.83 351.88" role="img" aria-label="Thread"><use href="#logo"/></svg>
-        <span>one line, no gaps</span>
-      </h1>
-      <p>Draw a single line that fills every square and touches the numbers in order. Two hundred boards, three lanes. Every board has exactly one answer.</p>
+    <div id="view-loom" style="display:block; margin-top:80px; padding:0 20px;">
+      <h2 style="font-family:var(--display); font-size:24px; color:var(--ink); margin-bottom:10px;">Loom Logic</h2>
+      <p style="color:var(--ink-soft); margin-bottom:20px;">Weave threads over the pegs to match the blueprint.</p>
+      <div id="loom-levels" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:10px;">
+      </div>
     </div>
-
-    <div class="lanes" role="group" aria-label="Difficulty">
-      <button class="lane" data-lane="easy" aria-pressed="false">
-        <b>Easy</b>
-      </button>
-      <button class="lane" data-lane="medium" aria-pressed="false">
-        <b>Medium</b>
-      </button>
-      <button class="lane" data-lane="hard" aria-pressed="false">
-        <b>Hard</b>
-      </button>
-    </div>
-
-    <div class="bar">
-      <h2 id="mapTitle">Medium</h2>
-      <span id="mapStat"></span>
-    </div>
-    <div class="worldbar">
-      <button class="icon" id="prevW" aria-label="Previous world">&lsaquo;</button>
-      <div class="glyph" id="wGlyph"></div>
-      <div class="naming"><b id="wName">Candy</b><small id="wRange">Levels 1 to 10</small></div>
-      <button class="icon" id="nextW" aria-label="Next world">&rsaquo;</button>
-    </div>
-    <div class="map" id="map"></div>
-    <div class="pips" id="pips" aria-label="Worlds"></div>
-    <button class="cta" id="cta"><span id="ctaLabel">Play level 1</span><span>&rarr;</span></button>
-
     
     <div class="foot">
 
@@ -133,48 +103,15 @@
   <!-- ================= play ================= -->
   
   
-  
-  <section class="screen" id="play">
-
-    <div class="top">
-      <button class="icon" id="back" aria-label="Back to level list">&larr;</button>
-      <div class="lv">Level <span id="lvNum">1</span><em id="lvLane">Medium</em></div>
-      <div class="sp"></div>
-      <div class="lv" id="lvDots" aria-live="off"></div>
-      <button class="icon snd" id="sndPlay" aria-pressed="true" aria-label="Sound on"><div class="eq"><i></i><i></i><i></i></div></button>
-    </div>
-    <div class="strip"><i id="stripFill"></i></div>
-
-    <div class="stage">
-      <div class="side">
-        <dl>
-          <div class="pair wide"><dt>Lane</dt><dd id="sLane">Medium</dd></div>
-          <div class="pair"><dt>Numbers</dt><dd id="sNums">1&ndash;5</dd></div>
-          <div class="pair wide"><dt>Squares</dt><dd id="sCells">16</dd></div>
-          <div class="pair"><dt>Filled</dt><dd id="sFilled">1</dd></div>
-          <div class="pair"><dt>Next</dt><dd id="sNext">2</dd></div>
-          <div class="pair wide"><dt>Target time</dt><dd id="sPar">&mdash;</dd></div>
-        </dl>
-        <p class="note">Arrow keys draw, Backspace rubs out, H asks for a hint, R restarts the board.</p>
-      </div>
-
-      <div class="boardwrap">
-        <div class="playcol">
-          <div class="clock" id="clock" hidden>
-            <div class="track"><i id="clockFill"></i></div>
-            <div class="lab"><span id="clockLab">0:00</span><span id="clockNote"></span></div>
-          </div>
-          <div class="boardslot"><svg class="board" id="board" role="application" aria-label="Puzzle board"></svg></div>
-          <div class="controls">
-            <button class="ctl" id="undo"><b>Rub out</b><span class="badge" id="undoBadge"></span></button>
-            <button class="ctl" id="hint"><b>Hint</b><span class="badge" id="hintBadge"></span></button>
-            <button class="ctl" id="reset"><b>Start over</b></button>
-          </div>
-          <div class="say" id="say" role="status" aria-live="polite"></div>
-        </div>
-      </div>
+  <section class="screen" id="play-loom">
+    <div class="playtop"><button class="icon" id="back-loom">&larr;</button></div>
+    <div id="loom-container" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
+    <div style="position:absolute; bottom:20px; width:100%; text-align:center; pointer-events:none;">
+      <h2 style="font-family:var(--display); font-size:24px; color:var(--ink);">Loom Logic</h2>
+      <p style="font-size:14px; color:var(--ink-soft);">Drag thread to match the blueprint.</p>
     </div>
   </section>
+  
 
   <!-- ================= profile ================= -->
   <section class="screen" id="profile">
