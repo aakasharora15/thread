@@ -452,7 +452,6 @@
     
     var boardSlot = document.querySelector('.boardslot');
     if (boardSlot) {
-      boardSlot.style.transform = '';
       boardSlot.classList.remove('solved-pulse');
       void boardSlot.offsetWidth;
       boardSlot.classList.add('solved-pulse');
@@ -1008,21 +1007,6 @@
   board.addEventListener('pointerup', onUp);
   board.addEventListener('pointercancel', onUp);
 
-  var boardSlot = board.parentNode;
-  boardSlot.addEventListener('pointermove', function(e) {
-    if (!S || S.over) return;
-    var rect = boardSlot.getBoundingClientRect();
-    var cx = rect.width / 2, cy = rect.height / 2;
-    var tiltX = ((e.clientY - rect.top - cy) / cy) * -5;
-    var tiltY = ((e.clientX - rect.left - cx) / cx) * 5;
-    boardSlot.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-  });
-  boardSlot.addEventListener('pointerleave', function() {
-    boardSlot.style.transform = `perspective(800px) rotateX(0) rotateY(0)`;
-  });
-  boardSlot.addEventListener('pointerup', function() {
-    boardSlot.style.transform = `perspective(800px) rotateX(0) rotateY(0)`;
-  });
 
   document.getElementById('ovAgain').addEventListener('click', function () {
     document.getElementById('over').classList.remove('on');

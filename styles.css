@@ -361,5 +361,4 @@ svg.board path[stroke="var(--thread)"] { filter: drop-shadow(0 0 6px var(--threa
   animation: wipeIn 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* ---------- Smooth 3D Board Transition ---------- */
-.boardslot { transition: transform 0.1s ease-out; }
+
