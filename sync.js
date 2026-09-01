@@ -134,16 +134,25 @@ async function signedIn(session) {
   user = session.user;
   accessToken = session.access_token;
   const first = firstName(user);
-  whoEl.textContent = first || user.email;
+  const name = first || user.email.split('@')[0];
+  const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+  whoEl.textContent = 'Hello ' + capitalized;
   whoEl.title = user.email;
+  whoEl.style.cursor = 'pointer';
+  whoEl.style.textDecoration = 'underline';
+  
   gate.classList.add('done');
-  showSplash(first);                        // greets by name, or just the artwork
+  showSplash(capitalized);                        // greets by name, or just the artwork
   window.Thread.setCloud(cloud);
   await window.Thread.boot();
   await pull();
   pending = true;
   flush();                                  // seed the row for a brand new account
   hideSplash();
+  
+  // After login, show the profile page
+  window.Thread.renderProfile();
+  window.Thread.show('profile');
 }
 
 async function submit() {
@@ -200,6 +209,8 @@ document.getElementById('signOut').addEventListener('click', async () => {
   window.Thread.signedOut();
   whoEl.textContent = '';
   whoEl.removeAttribute('title');
+  whoEl.style.textDecoration = 'none';
+  whoEl.style.cursor = 'default';
   passEl.value = '';
   nameEl.value = '';
   ageEl.value = '';
