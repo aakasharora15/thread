@@ -1,6 +1,7 @@
 (function () {
   "use strict";
   var BOARDS = window.THREAD_BOARDS;
+  function haptic(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
 
   var LANE = {
     easy:   { name: 'Easy',   hints: 3, undoCap: Infinity, guard: true,  highlight: true,  clock: 'none',      parBase: 1.6 },
@@ -404,6 +405,7 @@
     document.getElementById('undo').disabled = S.line.length <= 1 || S.undosLeft <= 0;
   }
   function afterMove() {
+    haptic(5);
     draw();
     document.getElementById('sFilled').textContent = S.line.length;
     document.getElementById('sNext').textContent = nextNumber() > S.board.cpCount ? 'done' : nextNumber();
@@ -438,9 +440,26 @@
   function win() {
     S.over = true; S.won = true; clearInterval(timer);
     clearResume();
+    
+    var boardSlot = document.querySelector('.boardslot');
+    if (boardSlot) {
+      boardSlot.classList.remove('solved-pulse');
+      void boardSlot.offsetWidth;
+      boardSlot.classList.add('solved-pulse');
+    }
     var clean = S.added === S.board.cells - 1;
     var par = parTime(S.board, S.lane);
     var stars = 1 + (clean ? 1 : 0) + (clean && S.elapsed <= par ? 1 : 0);
+    
+    if (stars === 3 && window.confetti) {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#4CC0A0', '#E8C04A', '#FF7A5C'],
+        disableForReducedMotion: true
+      });
+    }
     var st = save[S.lane];
     st.stars[S.level] = Math.max(st.stars[S.level] || 0, stars);
     st.unlocked = Math.max(st.unlocked, Math.min(LEVELS, S.level + 1));
@@ -452,6 +471,7 @@
     var body = clean
       ? 'Clean solve in ' + fmt(S.elapsed) + '. Target was ' + fmt(par) + '.'
       : 'Solved in ' + fmt(S.elapsed) + ', with ' + (S.added - (S.board.cells - 1)) + ' extra squares drawn. A solve with nothing rubbed out earns the second dot.';
+    haptic([15, 50, 15]);
     Snd.win();
     draw(true);
     setTimeout(function () { overlay('Solved', body, stars); }, 520);
@@ -462,7 +482,14 @@
     document.getElementById('ovBody').textContent = body;
     var wrap = document.getElementById('ovStars');
     wrap.style.display = stars < 0 ? 'none' : 'flex';
-    [].forEach.call(wrap.children, function (el, i) { el.classList.toggle('on', i < stars); });
+    [].forEach.call(wrap.children, function (el, i) {
+      el.classList.remove('on', 'star-pop');
+      if (i < stars) {
+        setTimeout(function () {
+          el.classList.add('on', 'star-pop');
+        }, 300 + i * 250);
+      }
+    });
     document.getElementById('ovNext').textContent = stars < 0 ? 'Back to levels' : 'Next level';
     document.getElementById('over').classList.add('on');
   }
@@ -683,12 +710,20 @@
 
   // ---------- screens ----------
   function show(id) {
-    ['home', 'play', 'profile'].forEach(function (k) { 
-      const el = document.getElementById(k);
-      if (el) el.classList.toggle('on', k === id); 
-    });
-    document.body.classList.toggle('playing', id === 'play');
-    window.scrollTo(0, 0);
+    const update = () => {
+      ['home', 'play', 'profile'].forEach(function (k) { 
+        const el = document.getElementById(k);
+        if (el) el.classList.toggle('on', k === id); 
+      });
+      document.body.classList.toggle('playing', id === 'play');
+      window.scrollTo(0, 0);
+    };
+
+    if (document.startViewTransition) {
+      document.startViewTransition(update);
+    } else {
+      update();
+    }
   }
 
   var world = 0, worldPinned = false;
@@ -730,6 +765,7 @@
     for (var l = first; l <= last; l++) {
       var b = document.createElement('button');
       b.className = 'node';
+      b.style.animationDelay = ((l - first) * 0.04) + 's';
       b.textContent = l;
       var s = st.stars[l] || 0;
       if (l > st.unlocked) { b.classList.add('locked'); b.disabled = true; }
@@ -749,8 +785,19 @@
       })(l);
       map.appendChild(b);
     }
-    [].forEach.call(document.querySelectorAll('.lane'), function (el2) {
-      el2.setAttribute('aria-pressed', el2.dataset.lane === lane ? 'true' : 'false');
+    [].forEach.call(document.querySelectorAll('.lane[data-lane]'), function (el2) {
+      var lk = el2.dataset.lane;
+      el2.setAttribute('aria-pressed', lk === lane ? 'true' : 'false');
+      var solved = Object.keys(save[lk].stars).length;
+      var pct = Math.round((solved / LEVELS) * 100);
+      var bar = el2.querySelector('.lane-progress');
+      if (!bar) {
+        bar = document.createElement('div'); bar.className = 'lane-progress';
+        var fill = document.createElement('div'); fill.className = 'lane-fill';
+        bar.appendChild(fill);
+        el2.appendChild(bar);
+      }
+      bar.querySelector('.lane-fill').style.width = pct + '%';
     });
   }
 
@@ -957,8 +1004,11 @@
   document.getElementById('undo').addEventListener('click', function () { if (S && !S.over) rubOut(false); });
   document.getElementById('hint').addEventListener('click', function () { if (S && !S.over) useHint(); });
   document.getElementById('resetAll').addEventListener('click', function () {
-    save = { lane: save.lane, easy: mkLane(), medium: mkLane(), hard: mkLane() };
-    clearResume(); persist(); renderMap();
+    if (confirm('Are you sure you want to clear all your saved progress? This cannot be undone.')) {
+      save = { lane: save.lane, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+      clearResume(); persist(); renderMap();
+      if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
+    }
   });
 
   var board = document.getElementById('board');
@@ -966,6 +1016,7 @@
   board.addEventListener('pointermove', onMove);
   board.addEventListener('pointerup', onUp);
   board.addEventListener('pointercancel', onUp);
+
 
   document.getElementById('ovAgain').addEventListener('click', function () {
     document.getElementById('over').classList.remove('on');
@@ -1063,13 +1114,26 @@
           <div class="lane" style="display: block; flex: 1;">
             <b>${laneName}</b>
             <div style="font-size: 14px; margin-top: 8px;">
-              <div>Levels Unlocked: <strong>${data.unlocked}</strong></div>
-              <div>Levels Solved: <strong>${solved}</strong></div>
-              <div>Stars Earned: <strong>${stars}</strong></div>
+              <div>Levels Unlocked: <strong data-count="${data.unlocked}">0</strong></div>
+              <div>Levels Solved: <strong data-count="${solved}">0</strong></div>
+              <div>Stars Earned: <strong data-count="${stars}">0</strong></div>
             </div>
           </div>
         `;
       }).join('');
+
+      stats.querySelectorAll('[data-count]').forEach(function(el, idx) {
+        var target = parseInt(el.dataset.count, 10);
+        if (target === 0) return;
+        var dur = 600, start = performance.now();
+        function tick(now) {
+          var t = Math.min((now - start) / dur, 1);
+          t = 1 - Math.pow(1 - t, 3);
+          el.textContent = Math.round(t * target);
+          if (t < 1) requestAnimationFrame(tick);
+        }
+        setTimeout(function() { requestAnimationFrame(tick); }, idx * 80);
+      });
     }
   };
 })();

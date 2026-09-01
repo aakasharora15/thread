@@ -378,3 +378,14 @@ svg.board path[stroke="var(--thread)"] { filter: drop-shadow(0 0 6px var(--threa
 }
 .lane[aria-pressed="true"] .lane-fill { background: rgba(255, 255, 255, 0.5); }
 .lane[aria-pressed="true"] .lane-progress { background: rgba(255, 255, 255, 0.15); }
+
+/* ---------- profile ---------- */
+/* The stats reuse .lanes, which is a row for the compact home picker. These
+   cards carry far more text, so stack them rather than crushing three into a
+   phone's width. */
+#profStats { flex-direction: column; }
+#profStats .lane { text-align: left; }
+/* .gatego is a button style and an anchor does not inherit colour from it,
+   so without this the link renders in the browser's default blue. */
+#profMailLink { color: var(--ink); }
+#profMailNote { font-size: 12.5px; line-height: 1.5; }

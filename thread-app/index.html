@@ -28,11 +28,11 @@
     <svg class="wordmark gatelogo" viewBox="0 0 1502.83 351.88" role="img" aria-label="Thread"><use href="#logo"/></svg>
     <p class="gateblurb">Sign in so your progress follows you to any phone.</p>
     <div id="gNew" hidden>
-      <label class="field"><span>Your name</span>
-        <input id="gName" type="text" autocomplete="name" autocapitalize="words" placeholder="Ana Ruiz">
+      <label class="field"><span>Full Name</span>
+        <input id="gName" type="text" autocomplete="name" autocapitalize="words" placeholder="e.g. Ana Ruiz">
       </label>
-      <label class="field"><span>Age</span>
-        <input id="gAge" type="number" inputmode="numeric" min="3" max="120" step="1" placeholder="Used to say hello, nothing else">
+      <label class="field"><span>Date of Birth</span>
+        <input id="gDob" type="date" required>
       </label>
     </div>
     <label class="field"><span>Email</span>
@@ -61,7 +61,7 @@
   <section class="screen on" id="home">
     <div class="hdr">
       <span class="who" id="who"></span>
-      <button class="icon snd" id="sndHome" aria-pressed="true" aria-label="Sound on">&#9834;</button>
+      <button class="icon snd" id="sndHome" aria-pressed="true" aria-label="Sound on"><div class="eq"><i></i><i></i><i></i></div></button>
       <button class="icon" id="signOut" aria-label="Sign out" title="Sign out">&#8631;</button>
     </div>
     <div class="mast">
@@ -74,13 +74,13 @@
 
     <div class="lanes" role="group" aria-label="Difficulty">
       <button class="lane" data-lane="easy" aria-pressed="false">
-        <b>Easy</b><small>Small boards, plenty of numbers, no clock, three hints</small>
+        <b>Easy</b>
       </button>
       <button class="lane" data-lane="medium" aria-pressed="true">
-        <b>Medium</b><small>Bigger boards, one hint, clock runs for the third star</small>
+        <b>Medium</b>
       </button>
       <button class="lane" data-lane="hard" aria-pressed="false">
-        <b>Hard</b><small>Widest boards, few numbers, timed from level 121</small>
+        <b>Hard</b>
       </button>
     </div>
 
@@ -123,7 +123,7 @@
       <div class="lv">Level <span id="lvNum">1</span><em id="lvLane">Medium</em></div>
       <div class="sp"></div>
       <div class="lv" id="lvDots" aria-live="off"></div>
-      <button class="icon snd" id="sndPlay" aria-pressed="true" aria-label="Sound on">&#9834;</button>
+      <button class="icon snd" id="sndPlay" aria-pressed="true" aria-label="Sound on"><div class="eq"><i></i><i></i><i></i></div></button>
     </div>
     <div class="strip"><i id="stripFill"></i></div>
 
@@ -177,7 +177,8 @@
 
     <div class="foot">
       <p style="margin-bottom: 12px;">Have an idea or found a bug?</p>
-      <a href="mailto:developer@example.com?subject=Thread Game Request" class="gatego" style="display:inline-block; text-decoration:none; text-align:center;">Email the Developer</a>
+      <a id="profMailLink" href="#" hidden class="gatego" style="display:inline-block; text-decoration:none; text-align:center;">Email the Developer</a>
+      <p id="profMailNote" hidden>No developer address is set yet. Fill in SUPPORT_EMAIL in config.js to switch this on.</p>
       <p style="margin-top: 24px;"><button id="profSignOut" style="text-decoration: underline; color: var(--ink-soft);">Sign out</button></p>
     </div>
   </section>
@@ -198,5 +199,7 @@
 <script src="boards.js"></script>
 <script src="app.js"></script>
 <script type="module" src="sync.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 </body>
 </html>

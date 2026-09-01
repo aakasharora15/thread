@@ -18,9 +18,11 @@ const swapText = document.getElementById('gSwapText');
 const whoEl = document.getElementById('who');
 const newBox = document.getElementById('gNew');
 const nameEl = document.getElementById('gName');
-const ageEl = document.getElementById('gAge');
+const dobEl = document.getElementById('gDob');
 const splash = document.getElementById('splash');
 const splashName = document.getElementById('splashName');
+const mailLink = document.getElementById('profMailLink');
+const mailNote = document.getElementById('profMailNote');
 
 let mode = 'in';                 // 'in' = sign in, 'up' = create account
 let supabase = null;
@@ -134,6 +136,36 @@ function hideSplash(immediate) {
 
 splash.addEventListener('click', () => hideSplash(true));
 
+// ---------- email the developer ----------
+// The draft carries the player's progress, so a report arrives with the
+// state that produced it rather than just "it broke".
+function updateMailLink() {
+  const to = (cfg.SUPPORT_EMAIL || '').trim();
+  if (!to || !user) {
+    mailLink.hidden = true;
+    mailNote.hidden = !!to;
+    return;
+  }
+  const save = window.Thread.getSave();
+  const lines = [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']].map(([key, label]) => {
+    const st = save[key] || {};
+    const stars = st.stars || {};
+    const keys = Object.keys(stars);
+    const dots = keys.reduce((a, k) => a + (stars[k] || 0), 0);
+    return label + ': ' + keys.length + ' solved, ' + dots + ' stars, furthest ' + (st.unlocked || 1);
+  });
+  const body = ['', '', '---', 'From ' + (firstName(user) || user.email), ...lines].join('\n');
+  mailLink.href = 'mailto:' + to +
+    '?subject=' + encodeURIComponent('Thread \u2014 a request') +
+    '&body=' + encodeURIComponent(body);
+  mailLink.hidden = false;
+  mailNote.hidden = true;
+}
+
+// app.js opens the profile from the header, so refresh the draft as it opens
+// and the progress inside it is current rather than whatever it was at sign in.
+whoEl.addEventListener('click', updateMailLink);
+
 // ---------- session ----------
 async function signedIn(session) {
   user = session.user;
@@ -159,6 +191,7 @@ async function signedIn(session) {
   }
   
   // After login, show the profile page
+  updateMailLink();
   window.Thread.renderProfile();
   window.Thread.show('profile');
 }
@@ -169,17 +202,17 @@ async function submit() {
   if (!email || pass.length < 8) { say('Enter your email and a password of at least 8 characters.'); return; }
 
   const fullName = nameEl.value.trim().replace(/\s+/g, ' ');
-  const age = parseInt(ageEl.value, 10);
+  const dob = dobEl.value;
   if (mode === 'up') {
     if (fullName.length < 2) { say('Tell us your name so the game can say hello.'); return; }
-    if (!(age >= 3 && age <= 120)) { say('Enter an age between 3 and 120.'); return; }
+    if (!dob) { say('Please enter your Date of Birth.'); return; }
   }
 
   goBtn.disabled = true;
   say(mode === 'up' ? 'Creating your account…' : 'Signing in…', true);
   try {
     const creds = { email, password: pass };
-    if (mode === 'up') creds.options = { data: { full_name: fullName, age: age } };
+    if (mode === 'up') creds.options = { data: { full_name: fullName, dob: dob } };
     const fn = mode === 'up' ? 'signUp' : 'signInWithPassword';
     const { data, error } = await supabase.auth[fn](creds);
     if (error) throw error;
@@ -221,7 +254,7 @@ document.getElementById('signOut').addEventListener('click', async () => {
   whoEl.style.cursor = 'default';
   passEl.value = '';
   nameEl.value = '';
-  ageEl.value = '';
+  dobEl.value = '';
   gate.classList.remove('done');
   say('Signed out.', true);
 });
