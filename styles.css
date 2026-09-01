@@ -266,3 +266,37 @@
 ::view-transition-old(root), ::view-transition-new(root) {
   animation-duration: 0.25s;
 }
+
+/* ---------- Minimalist Scrollbar ---------- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink-soft) 40%, transparent); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-soft); }
+
+/* ---------- Completion Ripple Glow ---------- */
+@keyframes solveRipple {
+  0% { box-shadow: 0 0 0 0 rgba(76, 192, 160, 0.5), var(--shadow); }
+  100% { box-shadow: 0 0 0 32px rgba(76, 192, 160, 0), var(--shadow); }
+}
+.boardslot.solved-pulse {
+  animation: solveRipple 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---------- Threaded Map Journey ---------- */
+.node {
+  z-index: 1; /* keep above the lines */
+}
+.node:not(:nth-child(5n))::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 8px); /* span the node + gap */
+  height: 2px;
+  background-image: linear-gradient(90deg, var(--ink-soft) 50%, transparent 50%);
+  background-size: 8px 100%;
+  opacity: 0.25;
+  z-index: -1;
+  transform: translateY(-50%);
+  pointer-events: none;
+}

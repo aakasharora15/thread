@@ -438,6 +438,13 @@
   function win() {
     S.over = true; S.won = true; clearInterval(timer);
     clearResume();
+    
+    var boardSlot = document.querySelector('.boardslot');
+    if (boardSlot) {
+      boardSlot.classList.remove('solved-pulse');
+      void boardSlot.offsetWidth;
+      boardSlot.classList.add('solved-pulse');
+    }
     var clean = S.added === S.board.cells - 1;
     var par = parTime(S.board, S.lane);
     var stars = 1 + (clean ? 1 : 0) + (clean && S.elapsed <= par ? 1 : 0);
