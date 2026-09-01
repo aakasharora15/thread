@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="mascot.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -49,20 +50,22 @@
   </div>
 </section>
 
-<!-- ============ welcome ============ -->
-<section class="hello" id="hello" hidden>
-  <div class="hellocard">
-    <div class="mascot" aria-hidden="true">
-      <svg class="mtail" viewBox="0 0 200 104"><path d="M150 26C146 68 116 92 74 88 52 86 38 76 24 62"/></svg>
-      <div class="mbody">
-        <i class="eye l"></i><i class="eye r"></i>
-        <svg class="mouth" viewBox="0 0 40 20"><path d="M5 5q15 15 30 0"/></svg>
-      </div>
-    </div>
-    <h2>Hello, <span id="helloName">you</span></h2>
-    <p id="helloNote">One line, no gaps. Let&rsquo;s go.</p>
-  </div>
+<!-- ============ splash ============ -->
+<section class="splash" id="splash">
+  <img id="splashArt" src="mascot.png" alt="Thread" width="1080" height="1920">
+  <p class="splashname" id="splashName" hidden></p>
 </section>
+<script>
+  // Safety net. sync.js normally clears the splash once it knows whether
+  // anyone is signed in, but it is a module loaded from a CDN: if that never
+  // arrives, this makes sure the splash cannot trap the app behind it.
+  setTimeout(function () {
+    var s = document.getElementById('splash');
+    if (!s || s.hidden) return;
+    s.classList.add('go');
+    setTimeout(function () { s.hidden = true; }, 500);
+  }, 6000);
+</script>
 
 <div class="wrap">
   <!-- ================= home ================= -->

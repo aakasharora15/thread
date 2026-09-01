@@ -19,8 +19,8 @@ const whoEl = document.getElementById('who');
 const newBox = document.getElementById('gNew');
 const nameEl = document.getElementById('gName');
 const ageEl = document.getElementById('gAge');
-const hello = document.getElementById('hello');
-const helloName = document.getElementById('helloName');
+const splash = document.getElementById('splash');
+const splashName = document.getElementById('splashName');
 
 let mode = 'in';                 // 'in' = sign in, 'up' = create account
 let supabase = null;
@@ -103,35 +103,47 @@ function firstName(u) {
   return full ? full.split(/\s+/)[0] : '';
 }
 
-function welcome(u) {
-  const first = firstName(u);
-  helloName.textContent = first || 'you';
-  hello.hidden = false;
-  hello.classList.remove('go');
-  let closed = false;
-  const close = () => {
-    if (closed) return;
-    closed = true;
-    hello.classList.add('go');
-    setTimeout(() => { hello.hidden = true; }, 520);
-  };
-  const timer = setTimeout(close, 2200);
-  hello.addEventListener('click', () => { clearTimeout(timer); close(); }, { once: true });
+let splashShownAt = Date.now();
+let splashHiding = false;
+
+// The splash is in the markup already, so it paints before this module has
+// even resolved the session and nobody sees the sign in screen flash past.
+function showSplash(name) {
+  splashName.textContent = name ? 'Welcome, ' + name : '';
+  splashName.hidden = !name;
+  splash.hidden = false;
+  splash.classList.remove('go');
+  splashShownAt = Date.now();
+  splashHiding = false;
 }
+
+function hideSplash(immediate) {
+  if (splashHiding) return;
+  splashHiding = true;
+  const wait = immediate ? 0 : Math.max(0, 1700 - (Date.now() - splashShownAt));
+  setTimeout(() => {
+    splash.classList.add('go');
+    setTimeout(() => { splash.hidden = true; }, 470);
+  }, wait);
+}
+
+splash.addEventListener('click', () => hideSplash(true));
 
 // ---------- session ----------
 async function signedIn(session) {
   user = session.user;
   accessToken = session.access_token;
-  whoEl.textContent = firstName(user) || user.email;
+  const first = firstName(user);
+  whoEl.textContent = first || user.email;
   whoEl.title = user.email;
   gate.classList.add('done');
-  welcome(user);
+  showSplash(first);                        // greets by name, or just the artwork
   window.Thread.setCloud(cloud);
   await window.Thread.boot();
   await pull();
   pending = true;
   flush();                                  // seed the row for a brand new account
+  hideSplash();
 }
 
 async function submit() {
@@ -227,6 +239,7 @@ paint();
 if (!configured()) {
   say('This copy has not been connected to a Supabase project yet. Fill in config.js.');
   goBtn.disabled = true;
+  hideSplash();
 } else {
   supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true }
@@ -236,4 +249,5 @@ if (!configured()) {
   });
   const { data } = await supabase.auth.getSession();
   if (data.session) await signedIn(data.session);
+  else hideSplash();                        // nobody signed in: straight to the gate
 }

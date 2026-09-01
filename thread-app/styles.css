@@ -224,50 +224,20 @@
 .gatemsg { min-height: 34px; text-align: center; font-size: 13px; line-height: 1.4; color: var(--thread); margin: 10px 0 0; }
 .gatemsg.ok { color: var(--ink-soft); }
 
-/* ---------- welcome ---------- */
-/* Sits above the game while it boots, then fades. Uses the world palette, so
-   the mascot is recoloured by whichever world the player is on. */
-.hello {
-  position: fixed; inset: 0; z-index: 45; background: var(--ground);
+/* ---------- splash ---------- */
+/* Full-bleed artwork on its own white ground, shown while the app works out
+   whether anyone is signed in, and again by name after signing in. It is
+   contained rather than cropped so the lettering survives every aspect ratio. */
+.splash {
+  position: fixed; inset: 0; z-index: 50; background: #fff;
   display: flex; align-items: center; justify-content: center;
-  padding: 24px calc(20px + env(safe-area-inset-left)) calc(24px + env(safe-area-inset-bottom));
-  transition: opacity .5s ease;
+  transition: opacity .45s ease;
 }
-.hello.go { opacity: 0; pointer-events: none; }
-.hellocard { text-align: center; max-width: 340px; }
-.hello h2 {
-  font-family: var(--display); font-weight: 700; letter-spacing: -.01em;
-  font-size: clamp(28px, 8vw, 38px); line-height: 1.1; margin: 26px 0 8px;
-}
-.hello p { margin: 0; font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
-
-.mascot { position: relative; width: 136px; height: 136px; margin: 0 auto; }
-/* One thread, leaving the body once and trailing off. Its right end sits
-   behind the body, so the creature reads as the line the game is played with. */
-.mtail {
-  position: absolute; left: -76px; bottom: -10px; width: 200px; height: 104px;
-  overflow: visible;
-}
-.mtail path { fill: none; stroke: var(--thread); stroke-width: 9; stroke-linecap: round; }
-.mbody {
-  position: absolute; inset: 0; background: var(--grad); box-shadow: var(--shadow);
-  border-radius: 57% 43% 47% 53% / 49% 43% 57% 51%;
-  transition: background .4s ease;
-}
-.mbody::before {
-  content: ""; position: absolute; inset: 0; border-radius: inherit;
-  background: radial-gradient(58% 50% at 32% 24%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 70%);
-}
-.mbody .eye {
-  position: absolute; top: 42%; width: 14px; height: 17px; border-radius: 50%;
-  background: var(--ink); display: block;
-}
-.mbody .eye.l { left: 29%; }
-.mbody .eye.r { right: 29%; }
-.mbody .mouth { position: absolute; left: 50%; top: 60%; width: 40px; margin-left: -20px; overflow: visible; }
-.mbody .mouth path { fill: none; stroke: var(--ink); stroke-width: 3.6; stroke-linecap: round; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .mascot { animation: bob 3.4s ease-in-out infinite; }
-  @keyframes bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+.splash.go { opacity: 0; pointer-events: none; }
+.splash img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.splashname {
+  position: absolute; left: 0; right: 0; bottom: max(7vh, 40px);
+  margin: 0; text-align: center; padding: 0 24px;
+  font-family: var(--display); font-weight: 600; font-size: clamp(19px, 5.4vw, 26px);
+  letter-spacing: -.01em; color: #E63E2E;
 }
