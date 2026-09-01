@@ -248,15 +248,15 @@ document.getElementById('signOut').addEventListener('click', async () => {
   await supabase.auth.signOut();
   user = null;
   window.Thread.signedOut();
-  whoEl.textContent = '';
+  whoEl.textContent = 'Sign In';
   whoEl.removeAttribute('title');
-  whoEl.style.textDecoration = 'none';
-  whoEl.style.cursor = 'default';
+  whoEl.style.textDecoration = 'underline';
+  whoEl.style.cursor = 'pointer';
   passEl.value = '';
   nameEl.value = '';
   dobEl.value = '';
-  gate.classList.remove('done');
   say('Signed out.', true);
+  window.Thread.show('home');
 });
 
 // last chance to get the final state up before the tab dies. sendBeacon cannot
@@ -300,6 +300,17 @@ if (!configured()) {
     if (session) accessToken = session.access_token;
   });
   const { data } = await supabase.auth.getSession();
-  if (data.session) await signedIn(data.session);
-  else gate.classList.remove('done');       // nobody signed in: show the gate
+  if (data.session) {
+    await signedIn(data.session);
+  } else {
+    whoEl.textContent = 'Sign In';
+    whoEl.style.cursor = 'pointer';
+    whoEl.style.textDecoration = 'underline';
+    try { await window.Thread.boot(); } catch (e) {}
+    window.Thread.show('home');
+  }
 }
+
+document.getElementById('gateClose').addEventListener('click', () => {
+  document.getElementById('gate').classList.add('done');
+});
