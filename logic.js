@@ -9,6 +9,24 @@
 
   function mkLane() { return { unlocked: 1, stars: {}, streak: 0, bank: 0 }; }
 
+  // Snip & Stitch and Loom Logic keep the same shape as a lane, minus the
+  // streak and bank the classic game tracks. One save holds all three games,
+  // so one account carries the whole app.
+  var GAMES = ['snip', 'loom'];
+  function mkGame() { return { unlocked: 1, stars: {} }; }
+
+  // Highest wins, level by level: the same rule the lanes play by.
+  function mergeProgress(x, y, blank) {
+    var out = blank();
+    out.unlocked = Math.max(x.unlocked || 1, y.unlocked || 1);
+    out.stars = {};
+    Object.keys(x.stars || {}).forEach(function (l) { out.stars[l] = x.stars[l]; });
+    Object.keys(y.stars || {}).forEach(function (l) {
+      out.stars[l] = Math.max(out.stars[l] || 0, y.stars[l]);
+    });
+    return out;
+  }
+
   // Progress only ever moves forward, so merging two copies means taking the
   // higher of each value. Nobody's run can be eaten by another device.
   function mergeSaves(a, b) {
@@ -21,16 +39,14 @@
     out.last = newer.last || a.last || b.last;
     out.cosmetics = newer.cosmetics || a.cosmetics || b.cosmetics || { color: 'default', audio: 'default' };
     ['easy', 'medium', 'hard'].forEach(function (k) {
-      var x = a[k] || mkLane(), y = b[k] || mkLane(), lane = mkLane();
-      lane.unlocked = Math.max(x.unlocked || 1, y.unlocked || 1);
+      var x = a[k] || mkLane(), y = b[k] || mkLane();
+      var lane = mergeProgress(x, y, mkLane);
       lane.streak = Math.max(x.streak || 0, y.streak || 0);
       lane.bank = Math.max(x.bank || 0, y.bank || 0);
-      lane.stars = {};
-      Object.keys(x.stars || {}).forEach(function (l) { lane.stars[l] = x.stars[l]; });
-      Object.keys(y.stars || {}).forEach(function (l) {
-        lane.stars[l] = Math.max(lane.stars[l] || 0, y.stars[l]);
-      });
       out[k] = lane;
+    });
+    GAMES.forEach(function (k) {
+      out[k] = mergeProgress(a[k] || mkGame(), b[k] || mkGame(), mkGame);
     });
     return out;
   }
@@ -109,5 +125,6 @@
     return bad;
   }
 
-  return { mkLane: mkLane, mergeSaves: mergeSaves, decodeBoard: decodeBoard, validateBoard: validateBoard };
+  return { mkLane: mkLane, mkGame: mkGame, GAMES: GAMES, mergeSaves: mergeSaves,
+           decodeBoard: decodeBoard, validateBoard: validateBoard };
 });

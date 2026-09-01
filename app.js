@@ -1,9 +1,14 @@
 import { initNav } from './nav.js';
 import { Audio } from './audio.js';
 import { Toast } from './toast.js';
-  "use strict";
-  var L = window.ThreadLogic;
-  var mkLane = L.mkLane, mergeSaves = L.mergeSaves;
+
+// This file used to be wrapped in an IIFE. That wrapper is gone, so the whole
+// file is a module now and strict mode is automatic; the leftover directive
+// sat here doing nothing. The two-space indent below is the same leftover and
+// is kept for now because de-indenting 1,400 lines would bury every real
+// change in the diff.
+var L = window.ThreadLogic;
+  var mkLane = L.mkLane, mkGame = L.mkGame, mergeSaves = L.mergeSaves, GAMES = L.GAMES;
   // boards.js is 89 KB of level data that the home screen never needs, so it
   // is fetched on demand and then warmed in the background after boot.
   var BOARDS = window.THREAD_BOARDS || null;
@@ -87,7 +92,8 @@ import { Toast } from './toast.js';
   var SAVE_KEY = 'thread:save:v1';
   var RESUME_KEY = 'thread:resume:v1';
 
-  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane() };
+  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(),
+               snip: mkGame(), loom: mkGame() };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
   Audio.init(function () { return { soundEnabled: save.sound !== false }; });
@@ -122,6 +128,12 @@ import { Toast } from './toast.js';
     };
   })();
 
+  // Nothing may write the save until it has been read. persist() runs from
+  // pagehide and from backgrounding the app, and load() only runs once signing
+  // in has resolved, so without this a player who opens the app and switches
+  // away before that finishes has their progress overwritten with a blank one.
+  var loaded = false;
+
   function load() {
     return store.get(SAVE_KEY).then(function (raw) {
       if (raw) {
@@ -135,16 +147,22 @@ import { Toast } from './toast.js';
             save.seq = v.seq || 0;
             save.updatedAt = v.updatedAt || 0;
             ['easy', 'medium', 'hard'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
+            // The other two games live in this save as well. Copy them across
+            // even though nothing on this page reads them: persist() writes the
+            // whole object back, so anything dropped here is destroyed.
+            GAMES.forEach(function (k) { save[k] = Object.assign(mkGame(), v[k] || {}); });
           }
         } catch(e){}
       }
       return store.get(RESUME_KEY);
     }).then(function (raw) {
       if (raw) { try { resume = JSON.parse(raw); } catch (e) { resume = null; } }
+      loaded = true;
       applyCosmetics();
-    }).catch(function () {});
+    }).catch(function () { loaded = true; });
   }
   function persist(quiet) {
+    if (!loaded) return;                     // see the note on `loaded` above
     save.seq = (save.seq || 0) + 1;
     save.updatedAt = Date.now();
     store.set(SAVE_KEY, JSON.stringify(save));
@@ -958,7 +976,7 @@ import { Toast } from './toast.js';
     if (cloud && cloud.wipe) cloud.wipe();
     // keep the sound preference: it is a setting, not progress
     save = { lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
-             easy: mkLane(), medium: mkLane(), hard: mkLane() };
+             easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkGame(), loom: mkGame() };
     applyCosmetics();
     clearResume(); persist(); renderMap();
     if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
@@ -1053,7 +1071,8 @@ import { Toast } from './toast.js';
       S = null;
       Audio.stop();
       save = { lane: 'medium', seq: 0, updatedAt: 0, cosmetics: { color: 'default', audio: 'default' },
-               easy: mkLane(), medium: mkLane(), hard: mkLane() };
+               easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkGame(), loom: mkGame() };
+      loaded = true;                         // signing out means to write this
       applyCosmetics();
       resume = null;
       store.set(SAVE_KEY, '');
@@ -1116,7 +1135,27 @@ import { Toast } from './toast.js';
         `;
       }).join('');
 
-      stats.querySelectorAll('[data-count]').forEach(function(el, idx) {
+      // The other two games live in the same save, so the profile shows them
+      // beside the lanes rather than pretending the app is only one game.
+      const games = document.getElementById('profGames');
+      if (games) {
+        const NAMES = { snip: 'Snip &amp; Stitch', loom: 'Loom Logic' };
+        games.innerHTML = GAMES.map(function (k) {
+          const data = save[k] || mkGame();
+          return `
+          <div class="lane" style="display: block; flex: 1;">
+            <b>${NAMES[k]}</b>
+            <div style="font-size: 14px; margin-top: 8px;">
+              <div>Levels Solved: <strong data-count="${countSolved(data)}">0</strong></div>
+            </div>
+          </div>
+        `;
+        }).join('');
+      }
+
+      const counters = [...stats.querySelectorAll('[data-count]'),
+                        ...(games ? games.querySelectorAll('[data-count]') : [])];
+      counters.forEach(function(el, idx) {
         var target = parseInt(el.dataset.count, 10);
         if (target === 0) return;
         var dur = 600, start = performance.now();

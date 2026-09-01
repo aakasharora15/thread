@@ -55,3 +55,25 @@ test('a save from before looks existed still merges', () => {
   const out = mergeSaves(save({ updatedAt: 100 }), save({ updatedAt: 900 }));
   assert.deepStrictEqual(out.cosmetics, { color: 'default', audio: 'default' });
 });
+
+test('the other two games merge by the same rule as the lanes', () => {
+  const a = save({ updatedAt: 100, snip: { unlocked: 3, stars: { 1: 1, 2: 1 } }, loom: { unlocked: 1, stars: {} } });
+  const b = save({ updatedAt: 900, snip: { unlocked: 2, stars: { 1: 1 } }, loom: { unlocked: 4, stars: { 1: 1, 3: 1 } } });
+  const out = mergeSaves(a, b);
+  assert.deepStrictEqual(out.snip, { unlocked: 3, stars: { 1: 1, 2: 1 } });
+  assert.deepStrictEqual(out.loom, { unlocked: 4, stars: { 1: 1, 3: 1 } });
+  // and it cannot matter which way round the two copies arrive
+  assert.deepStrictEqual(mergeSaves(b, a), out);
+});
+
+test('a save from before the other two games existed still merges', () => {
+  const out = mergeSaves(save({ updatedAt: 100 }), save({ updatedAt: 900 }));
+  assert.deepStrictEqual(out.snip, { unlocked: 1, stars: {} });
+  assert.deepStrictEqual(out.loom, { unlocked: 1, stars: {} });
+});
+
+test('a device that has been offline cannot roll the other games back', () => {
+  const behind = save({ updatedAt: 5000, snip: { unlocked: 1, stars: {} } });
+  const ahead = save({ updatedAt: 10, snip: { unlocked: 5, stars: { 1: 1, 2: 1, 3: 1, 4: 1 } } });
+  assert.strictEqual(mergeSaves(behind, ahead).snip.unlocked, 5);
+});

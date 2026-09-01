@@ -8,11 +8,11 @@
 // Everything else, the level data and the artwork, never changes without its
 // filename changing, so it is served cache first and revalidated behind the
 // scenes.
-const CACHE = 'thread-v13';
+const CACHE = 'thread-v14';
 
 const SHELL = ['./', 'hub.html', 'index.html', 'snip.html', 'loom.html', 'styles.css',
   'logic.js', 'app.js', 'audio.js', 'toast.js', 'sync.js', 'config.js',
-  'hub.js', 'nav.js', 'progress.js', 'settings.js',
+  'hub.js', 'nav.js', 'progress.js', 'settings.js', 'cloud.js',
   'snip.js', 'snip-app.js', 'loom.js', 'loom-app.js', 'manifest.webmanifest'];
 const ASSETS = SHELL.concat(['boards.js', 'mascot.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png']);
 

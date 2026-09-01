@@ -2,6 +2,7 @@ import { startLoom, stopLoom } from './loom.js';
 import { Audio } from './audio.js';
 import { Settings } from './settings.js';
 import { loadGame, recordWin, setSound } from './progress.js';
+import { sync, push } from './cloud.js';
 
 const TOTAL = 5;
 
@@ -38,6 +39,7 @@ window.Thread = {
   winLoom(level) {
     recordWin('loom', level, TOTAL);
     renderLevels();
+    push();                                  // no-op when nobody is signed in
   }
 };
 
@@ -73,3 +75,4 @@ document.getElementById('back-loom').onclick = () => { stopLoom(); show('home');
 document.getElementById('retry-loom').onclick = () => { if (current) startLoom(current); };
 
 renderLevels();
+sync().then(saved => { if (saved) renderLevels(); });

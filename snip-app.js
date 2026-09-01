@@ -2,6 +2,7 @@ import { startSnip, stopSnip } from './snip.js';
 import { Audio } from './audio.js';
 import { Settings } from './settings.js';
 import { loadGame, recordWin, setSound } from './progress.js';
+import { sync, push } from './cloud.js';
 
 const TOTAL = 5;
 
@@ -38,6 +39,7 @@ window.Thread = {
   winSnip(level) {
     recordWin('snip', level, TOTAL);
     renderLevels();
+    push();                                  // no-op when nobody is signed in
   }
 };
 
@@ -73,3 +75,4 @@ document.getElementById('back-snip').onclick = () => { stopSnip(); show('home');
 document.getElementById('retry-snip').onclick = () => { if (current) startSnip(current); };
 
 renderLevels();
+sync().then(saved => { if (saved) renderLevels(); });

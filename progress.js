@@ -1,69 +1,68 @@
-// One place that knows where every game keeps its progress. The hub, the two
-// smaller games and the shared settings all read through here so a key name
-// can never drift between them again.
+// One save, one account, three games.
 //
-// The classic game owns 'thread:save:v1' and syncs it to the server; the two
-// smaller games are local to the device for now, so they get their own keys
-// rather than riding along inside a save that the merge rules would fight.
+// Everything a player does lives in a single object under CLASSIC_KEY, which
+// sync.js pushes to their row on the server. Snip & Stitch and Loom Logic keep
+// their progress in there beside the classic game's three lanes rather than in
+// keys of their own, so signing in once carries the whole app between devices.
+//
+// The merge rule for all of it is in mergeSaves (logic.js): highest wins, level
+// by level, so two devices converge instead of one overwriting the other.
 
 export const CLASSIC_KEY = 'thread:save:v1';
-export const KEYS = { snip: 'thread:snip:v1', loom: 'thread:loom:v1' };
+export const GAMES = ['snip', 'loom'];
 
-function read(key, fallback) {
+function read() {
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
+    const raw = localStorage.getItem(CLASSIC_KEY);
+    if (!raw) return null;
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed : fallback;
+    return parsed && typeof parsed === 'object' ? parsed : null;
   } catch (e) {
-    return fallback;                       // private mode, or a corrupt value
+    return null;                             // private mode, or a corrupt value
   }
 }
 
-function write(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+function write(save) {
+  // Same bookkeeping app.js does, so the newer copy wins on the next merge.
+  save.seq = (save.seq || 0) + 1;
+  save.updatedAt = Date.now();
+  try { localStorage.setItem(CLASSIC_KEY, JSON.stringify(save)); } catch (e) {}
+  return save;
 }
+
+export function loadClassic() { return read(); }
 
 // ---------- the smaller games ----------
 
 export function loadGame(name) {
-  const save = read(KEYS[name], null);
-  return {
-    unlocked: Math.max(1, save && save.unlocked || 1),
-    stars: (save && save.stars) || {}
-  };
+  const g = (read() || {})[name];
+  return { unlocked: Math.max(1, (g && g.unlocked) || 1), stars: (g && g.stars) || {} };
 }
 
-// Progress only ever moves forward here, the same rule the classic game plays
-// by, so replaying an early level can never lock a later one again.
+// Progress only ever moves forward, so replaying an early level can never lock
+// a later one again.
 export function recordWin(name, level, total) {
-  const save = loadGame(name);
-  save.stars[level] = Math.max(save.stars[level] || 0, 1);
-  save.unlocked = Math.min(total, Math.max(save.unlocked, level + 1));
-  write(KEYS[name], save);
-  return save;
+  const save = read() || {};
+  const g = save[name] || { unlocked: 1, stars: {} };
+  g.stars = g.stars || {};
+  g.stars[level] = Math.max(g.stars[level] || 0, 1);
+  g.unlocked = Math.min(total, Math.max(g.unlocked || 1, level + 1));
+  save[name] = g;
+  write(save);
+  return g;
 }
 
 export function countCleared(name) {
-  const save = loadGame(name);
-  return Object.keys(save.stars).filter(k => save.stars[k] > 0).length;
+  const stars = loadGame(name).stars;
+  return Object.keys(stars).filter(k => stars[k] > 0).length;
 }
 
-// ---------- the classic game ----------
+// ---------- settings ----------
 
-// Read-only: the classic save belongs to app.js and sync.js, and the hub only
-// ever looks at it.
-export function loadClassic() {
-  return read(CLASSIC_KEY, null);
-}
-
-// The sound toggle is app-wide, so the smaller games write it back into the
-// classic save the same way app.js does: bump seq and updatedAt, and let the
-// merge rules ('the newer copy decides') carry it to the other devices.
+// The sound toggle is app-wide, so any page may set it. The merge rule for it
+// is 'the newer copy decides', which the bumped updatedAt in write() satisfies.
 export function setSound(on) {
-  const save = loadClassic() || {};
+  const save = read() || {};
   save.sound = !!on;
-  save.seq = (save.seq || 0) + 1;
-  save.updatedAt = Date.now();
-  write(CLASSIC_KEY, save);
+  write(save);
 }

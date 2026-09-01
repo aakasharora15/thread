@@ -1,5 +1,6 @@
 // The hub only reports; every game owns its own progress.
 import { loadClassic, countCleared } from './progress.js';
+import { sync, account } from './cloud.js';
 
 const TOTAL = { snip: 5, loom: 5 };
 
@@ -28,7 +29,25 @@ function smallLine(name) {
 
 const lines = { classic: classicLine, snip: () => smallLine('snip'), loom: () => smallLine('loom') };
 
-document.querySelectorAll('[data-prog]').forEach(el => {
-  const fn = lines[el.dataset.prog];
-  if (fn) el.textContent = fn();
+function paint() {
+  document.querySelectorAll('[data-prog]').forEach(el => {
+    const fn = lines[el.dataset.prog];
+    if (fn) el.textContent = fn();
+  });
+}
+paint();
+
+// ---------- account ----------
+// One sign-in covers the whole app, so say plainly which state we are in.
+// Signing in is on the classic game, where the gate already lives.
+const accountEl = document.getElementById('hubAccount');
+const ACCOUNT_LINE = {
+  in: 'Signed in. Your progress across all three games follows you to any phone.',
+  out: 'Playing as a guest, saved on this device. <a href="index.html">Sign in</a> and everything you have already played comes with you.'
+};
+account().then(state => {
+  if (accountEl && ACCOUNT_LINE[state]) accountEl.innerHTML = ACCOUNT_LINE[state];
 });
+
+// The server may be ahead of this device, so redraw once it has answered.
+sync().then(saved => { if (saved) paint(); });
