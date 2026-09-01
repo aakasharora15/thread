@@ -180,8 +180,12 @@ import { Toast } from './toast.js';
   function decode(lane, level) { return L.decodeBoard(BOARDS[lane][level - 1]); }
   function wallKey(a, b) { return a < b ? a + ',' + b : b + ',' + a; }
 
+  // Board size sets the floor; the number of turns adds the rest. This used to
+  // read board.index, which was a difficulty score until the boards were
+  // regenerated and it became the level number, which pushed the late targets
+  // past ten minutes and squeezed the early ones to nothing.
   function parTime(board, lane) {
-    return Math.round(board.cells * LANE[lane].parBase + board.index * 3);
+    return Math.round(board.cells * LANE[lane].parBase + board.turns * 1.5);
   }
   var LEVELS = 200;
   function countdownFor(level) {

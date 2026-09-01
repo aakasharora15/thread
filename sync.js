@@ -332,6 +332,7 @@ paint();
 if (!configured()) {
   say('This copy has not been connected to a Supabase project yet. Fill in config.js.');
   goBtn.disabled = true;
+  hideSplash(true);                      // or the artwork sits on top of the message
   gate.classList.remove('done');
 } else {
   supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {

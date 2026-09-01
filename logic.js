@@ -35,6 +35,15 @@
     return out;
   }
 
+  // How many times the solution changes direction. It stands in for how fiddly
+  // a board is to draw, which is what the third star's time target is really
+  // measuring, and unlike the level number it is a property of the board.
+  function countTurns(d) {
+    var n = 0;
+    for (var i = 1; i < d.length; i++) if (d[i] !== d[i - 1]) n++;
+    return n;
+  }
+
   // One packed board record becomes the shape the game plays against.
   function decodeBoard(b) {
     var R = b.r, C = b.c;
@@ -57,7 +66,8 @@
     });
     return {
       R: R, C: C, open: open, cp: cp, cpCount: b.q.length, walls: walls,
-      cells: path.length, solution: path, start: path[0], end: path[path.length - 1], index: b.x
+      cells: path.length, solution: path, start: path[0], end: path[path.length - 1],
+      index: b.x, turns: countTurns(b.d)
     };
   }
 

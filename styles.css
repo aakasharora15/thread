@@ -111,6 +111,7 @@
   .icon {
     width: 48px; height: 48px; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow-s);
     font-size: 17px; display: flex; align-items: center; justify-content: center; flex: none;
+    color: var(--ink); text-decoration: none;   /* .icon is a link on some pages */
   }
   .strip { height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .6); position: relative; flex: none; overflow: hidden; }
   .strip i { position: absolute; inset: 0 auto 0 0; background: var(--grad); display: block; border-radius: 4px; }
@@ -432,3 +433,79 @@ body.theme-gold {
 .swatch.on { color: var(--ink); border-color: var(--thread); }
 .sw-pink.on { border-color: #FF107A; }
 .sw-gold.on { border-color: #E6B800; }
+
+/* ---------- game hub ---------- */
+/* The front door: one card per game. Each card carries its own accent so the
+   three games read as a family without any of them losing its own identity. */
+.hubmast { padding: clamp(28px, 9vw, 56px) 0 8px; text-align: center; }
+.hubmast .wordmark { width: min(58vw, 230px); height: auto; display: block; margin: 0 auto; color: var(--ink); }
+.hubmast p {
+  margin: 14px auto 0; max-width: 34ch; color: var(--ink-soft);
+  line-height: 1.5; font-size: 14.5px;
+}
+
+.games { display: flex; flex-direction: column; gap: 14px; margin: 26px 0 8px; }
+.game {
+  --accent: var(--mint);
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px; border-radius: 24px;
+  background: var(--panel); box-shadow: var(--shadow-s);
+  color: inherit; text-decoration: none;
+  transition: transform .2s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s ease;
+}
+@media (hover: hover) {
+  .game:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+}
+.game:active { transform: translateY(1px); }
+.game .mark {
+  width: 60px; height: 60px; flex: none; border-radius: 18px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+}
+.game .mark svg { width: 34px; height: 34px; display: block; }
+.game .txt { flex: 1; min-width: 0; }
+.game h2 {
+  font-family: var(--display); font-size: 21px; font-weight: 600;
+  margin: 0; line-height: 1.15;
+}
+.game .blurb {
+  margin: 3px 0 0; font-size: 13px; color: var(--ink-soft); line-height: 1.45;
+}
+.game .prog {
+  margin: 9px 0 0; font-size: 12px; font-weight: 600; color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.game .chev { flex: none; color: var(--ink-soft); font-size: 20px; }
+
+/* ---------- shared level grid for the smaller games ---------- */
+.levelgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 10px; margin: 22px 0 6px; }
+.levelgrid button {
+  padding: 16px 0; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow-s);
+  font-family: var(--display); font-size: 18px; font-weight: 600; color: var(--ink);
+  transition: transform .2s cubic-bezier(.34, 1.56, .64, 1), opacity .2s ease;
+}
+.levelgrid button .st { display: block; font-size: 12px; color: var(--gold); line-height: 1; margin-top: 3px; }
+.levelgrid button:disabled { opacity: .38; box-shadow: none; }
+.levelgrid button:not(:disabled):active { transform: scale(.96); }
+
+/* ---------- play stage for the smaller games ---------- */
+/* The stage fills what is left under the bar rather than being pulled out of
+   flow, so the controls above it stay reachable. */
+#play-snip.on, #play-loom.on { display: flex; flex-direction: column; height: 100dvh; }
+.gamestage { flex: 1; min-height: 0; position: relative; overflow: hidden; touch-action: none; }
+.gamestage canvas, .gamestage svg { display: block; width: 100%; height: 100%; }
+.stagehint {
+  flex: none; margin: 0; padding: 10px 0 calc(14px + env(safe-area-inset-bottom));
+  text-align: center; font-size: 13px; color: var(--ink-soft);
+}
+.stagefail {
+  position: absolute; inset: 0; margin: 0; display: flex;
+  align-items: center; justify-content: center; text-align: center;
+  padding: 0 32px; color: var(--ink-soft); font-size: 14px; line-height: 1.5;
+}
+
+/* The smaller games put their name in the masthead where the classic game puts
+   its wordmark, so the type has to come down to fit a real title. */
+.mast.title h1 { font-size: clamp(34px, 10vw, 56px); line-height: 1; }
+.mast.title h1 span { font-size: .3em; margin-top: 12px; }

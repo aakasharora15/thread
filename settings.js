@@ -1,19 +1,17 @@
-// settings.js wraps the classic game's save object to extract global settings 
-// (sound, cosmetics) so the isolated games can stay in sync without tampering 
-// with the classic engine.
+// The two smaller games read the player's sound and look choices from the
+// classic game's save, so one toggle governs the whole app. Read-only: the
+// classic engine stays the only writer.
+import { loadClassic } from './progress.js';
+
+const DEFAULTS = { sound: true, cosmetics: { color: 'default', audio: 'default' } };
 
 export const Settings = {
-  get: function() {
-    try {
-      const stored = localStorage.getItem('THREAD_SAVE');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return {
-          sound: parsed.sound !== false,
-          cosmetics: parsed.cosmetics || { color: 'default', audio: 'default' }
-        };
-      }
-    } catch(e) {}
-    return { sound: true, cosmetics: { color: 'default', audio: 'default' } };
+  get() {
+    const save = loadClassic();
+    if (!save) return DEFAULTS;
+    return {
+      sound: save.sound !== false,
+      cosmetics: save.cosmetics || DEFAULTS.cosmetics
+    };
   }
 };

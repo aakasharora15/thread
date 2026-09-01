@@ -1,54 +1,75 @@
 import { startLoom, stopLoom } from './loom.js';
-import { Toast } from './toast.js';
 import { Audio } from './audio.js';
 import { Settings } from './settings.js';
-import { initNav } from './nav.js';
+import { loadGame, recordWin, setSound } from './progress.js';
 
-Audio.init(() => {
-  const s = Settings.get();
-  return { soundEnabled: s.sound, audioTheme: s.cosmetics.audio === '8bit' ? 'square' : 'sine' };
-});
+const TOTAL = 5;
 
+// ---------- sound ----------
+// The setting lives in the classic game's save so one toggle governs the
+// whole app; this page reads it, and writes back only when it is toggled.
+let soundOn = Settings.get().sound;
+Audio.init(() => ({ soundEnabled: soundOn }));
+Audio.setTheme(Settings.get().cosmetics.audio);
+
+const sndBtn = document.getElementById('sndHome');
+function soundUI() {
+  if (!sndBtn) return;
+  sndBtn.classList.toggle('off', !soundOn);
+  sndBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  sndBtn.setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off');
+}
+if (sndBtn) sndBtn.onclick = () => {
+  soundOn = !soundOn;
+  setSound(soundOn);
+  soundUI();
+  if (!soundOn) Audio.stop();
+};
+soundUI();
+
+// ---------- screens ----------
+function show(id) {
+  document.getElementById('home').classList.toggle('on', id === 'home');
+  document.getElementById('play-loom').classList.toggle('on', id === 'play-loom');
+}
 
 window.Thread = {
-  show: function(id) {
-    document.getElementById('home').classList.toggle('on', id === 'home');
-    document.getElementById('play-loom').classList.toggle('on', id === 'play-loom');
-  },
-  winLoom: function(levelIndex) {
-    let save = JSON.parse(localStorage.getItem('THREAD_LOOM') || '{"unlocked":1, "stars":{}}');
-    if (!save.stars[levelIndex - 1]) save.stars[levelIndex - 1] = 1;
-    if (save.unlocked <= levelIndex) save.unlocked = levelIndex + 1;
-    localStorage.setItem('THREAD_LOOM', JSON.stringify(save));
-    renderLoomHub();
+  show,
+  winLoom(level) {
+    recordWin('loom', level, TOTAL);
+    renderLevels();
   }
 };
 
-function renderLoomHub() {
-  initNav();
-  const container = document.getElementById('loom-levels');
-  if (!container) return;
-  container.innerHTML = '';
-  let save = JSON.parse(localStorage.getItem('THREAD_LOOM') || '{"unlocked":1, "stars":{}}');
-  for (let i = 1; i <= 5; i++) {
+// ---------- level select ----------
+function renderLevels() {
+  const grid = document.getElementById('loom-levels');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const save = loadGame('loom');
+  for (let i = 1; i <= TOTAL; i++) {
     const btn = document.createElement('button');
-    btn.className = 'lane';
-    btn.style.padding = '15px 0';
-    const isUnlocked = i <= save.unlocked;
-    btn.innerHTML = '<b>' + i + '</b>' + (save.stars[i-1] ? ' ★' : '');
-    btn.disabled = !isUnlocked;
-    if (!isUnlocked) btn.style.opacity = '0.3';
-    btn.onclick = () => {
-      window.Thread.show('play-loom');
-      startLoom(i);
-    };
-    container.appendChild(btn);
+    const unlocked = i <= save.unlocked;
+    btn.innerHTML = i + (save.stars[i] ? '<span class="st">&#9733;</span>' : '<span class="st">&nbsp;</span>');
+    btn.disabled = !unlocked;
+    btn.setAttribute('aria-label', unlocked
+      ? 'Level ' + i + (save.stars[i] ? ', cleared' : '')
+      : 'Level ' + i + ', locked');
+    if (unlocked) btn.onclick = () => play(i);
+    grid.appendChild(btn);
   }
 }
 
-document.getElementById('back-loom').onclick = () => {
-  stopLoom();
-  window.Thread.show('home');
-};
+let current = 0;
+function play(level) {
+  current = level;
+  const lv = document.getElementById('loomLv');
+  if (lv) lv.textContent = 'Level ' + level;
+  show('play-loom');
+  startLoom(level);
+}
 
-renderLoomHub();
+document.getElementById('back-loom').onclick = () => { stopLoom(); show('home'); };
+document.getElementById('retry-loom').onclick = () => { if (current) startLoom(current); };
+
+renderLevels();

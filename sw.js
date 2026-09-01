@@ -8,10 +8,17 @@
 // Everything else, the level data and the artwork, never changes without its
 // filename changing, so it is served cache first and revalidated behind the
 // scenes.
-const CACHE = 'thread-v10';
+const CACHE = 'thread-v11';
 
-const SHELL = ['./', 'index.html', 'snip.html', 'loom.html', 'styles.css', 'logic.js', 'app.js', 'audio.js', 'toast.js', 'snip.js', 'loom.js', 'snip-app.js', 'nav.js', 'settings.js', 'loom-app.js', 'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js', 'sync.js', 'config.js', 'manifest.webmanifest'];
+const SHELL = ['./', 'hub.html', 'index.html', 'snip.html', 'loom.html', 'styles.css',
+  'logic.js', 'app.js', 'audio.js', 'toast.js', 'sync.js', 'config.js',
+  'hub.js', 'nav.js', 'progress.js', 'settings.js',
+  'snip.js', 'snip-app.js', 'loom.js', 'loom-app.js', 'manifest.webmanifest'];
 const ASSETS = SHELL.concat(['boards.js', 'mascot.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png']);
+
+// Matter.js comes from a CDN. It is deliberately not precached: one failed
+// cross-origin fetch would reject the whole addAll and leave nothing cached at
+// all. The cache-first branch below picks it up on the first successful load.
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -48,7 +55,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, copy));
         }
         return res;
-      }).catch(() => caches.match(e.request).then(hit => hit || caches.match('index.html')))
+      }).catch(() => caches.match(e.request).then(hit => hit || caches.match('hub.html')))
     );
     return;
   }
