@@ -1155,27 +1155,6 @@
     }
   };
 
-  // Zen Mode
-  var zenToggle = document.getElementById('zenToggle');
-  if (zenToggle) zenToggle.addEventListener('click', function() {
-    document.body.classList.toggle('zen-mode');
-  });
-
-  // Swipe Gestures
-  var touchStartX = 0;
-  document.getElementById('play').addEventListener('touchstart', function(e) {
-    if (e.target.closest('svg.board') || e.target.closest('button')) return;
-    touchStartX = e.touches[0].clientX;
-  }, {passive:true});
-  document.getElementById('play').addEventListener('touchend', function(e) {
-    if (!S || e.target.closest('svg.board') || e.target.closest('button')) return;
-    var dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 80) {
-      if (dx < 0 && S.level < 200) startLevel(S.lane, S.level + 1); // Swipe left = next
-      else if (dx > 0 && S.level > 1) startLevel(S.lane, S.level - 1); // Swipe right = prev
-    }
-  }, {passive:true});
-
   // Sparkles
   var sparkCanvas = document.getElementById('sparks');
   var sparkCtx = sparkCanvas ? sparkCanvas.getContext('2d') : null;
@@ -1189,7 +1168,7 @@
   window.addEventListener('resize', resizeSparks);
   resizeSparks();
   window.addSparks = function(x, y) {
-    if (!sparkCtx || document.body.classList.contains('zen-mode')) return;
+    if (!sparkCtx) return;
     for(var i=0; i<3; i++) {
       sparks.push({x: x, y: y, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3, life: 1, color: Math.random() > 0.5 ? '#00FFC8' : '#FFFFFF'});
     }
