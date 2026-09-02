@@ -93,7 +93,7 @@ var L = window.ThreadLogic;
   var RESUME_KEY = 'thread:resume:v1';
 
   var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(),
-               snip: mkGame(), loom: mkGame() };
+                };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
   Audio.init(function () { return { soundEnabled: save.sound !== false }; });
@@ -976,7 +976,7 @@ var L = window.ThreadLogic;
     if (cloud && cloud.wipe) cloud.wipe();
     // keep the sound preference: it is a setting, not progress
     save = { lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
-             easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkGame(), loom: mkGame() };
+             easy: mkLane(), medium: mkLane(), hard: mkLane(),  };
     applyCosmetics();
     clearResume(); persist(); renderMap();
     if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
@@ -1071,7 +1071,7 @@ var L = window.ThreadLogic;
       S = null;
       Audio.stop();
       save = { lane: 'medium', seq: 0, updatedAt: 0, cosmetics: { color: 'default', audio: 'default' },
-               easy: mkLane(), medium: mkLane(), hard: mkLane(), snip: mkGame(), loom: mkGame() };
+               easy: mkLane(), medium: mkLane(), hard: mkLane(),  };
       loaded = true;                         // signing out means to write this
       applyCosmetics();
       resume = null;
@@ -1139,7 +1139,7 @@ var L = window.ThreadLogic;
       // beside the lanes rather than pretending the app is only one game.
       const games = document.getElementById('profGames');
       if (games) {
-        const NAMES = { snip: 'Snip &amp; Stitch', loom: 'Loom Logic' };
+        const NAMES = {};
         games.innerHTML = GAMES.map(function (k) {
           const data = save[k] || mkGame();
           return `

@@ -9,7 +9,7 @@
 // by level, so two devices converge instead of one overwriting the other.
 
 export const CLASSIC_KEY = 'thread:save:v1';
-export const GAMES = ['snip', 'loom'];
+export const GAMES = [];
 
 function read() {
   try {

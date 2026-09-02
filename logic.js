@@ -12,7 +12,7 @@
   // Snip & Stitch and Loom Logic keep the same shape as a lane, minus the
   // streak and bank the classic game tracks. One save holds all three games,
   // so one account carries the whole app.
-  var GAMES = ['snip', 'loom'];
+  var GAMES = [];
   function mkGame() { return { unlocked: 1, stars: {} }; }
 
   // Highest wins, level by level: the same rule the lanes play by.

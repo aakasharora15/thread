@@ -2,7 +2,6 @@
 import { loadClassic, countCleared } from './progress.js';
 import { sync, account } from './cloud.js';
 
-const TOTAL = { snip: 5, loom: 5 };
 
 function classicLine() {
   const save = loadClassic();
@@ -27,7 +26,7 @@ function smallLine(name) {
   return cleared + ' of ' + total + ' cleared';
 }
 
-const lines = { classic: classicLine, snip: () => smallLine('snip'), loom: () => smallLine('loom') };
+const lines = { classic: classicLine };
 
 function paint() {
   document.querySelectorAll('[data-prog]').forEach(el => {
