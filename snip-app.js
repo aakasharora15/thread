@@ -4,7 +4,23 @@ import { Settings } from './settings.js';
 import { loadGame, recordWin, setSound } from './progress.js';
 import { sync, push } from './cloud.js';
 
-const TOTAL = 5;
+let TOTAL = 5;
+let levels = [];
+let levelsPromise = null;
+function ensureLevels() {
+  if (window.THREAD_SNIP_LEVELS) return Promise.resolve(window.THREAD_SNIP_LEVELS);
+  if (!levelsPromise) {
+    levelsPromise = new Promise((res, rej) => {
+      const sc = document.createElement('script');
+      sc.src = 'data/snip-levels.js';
+      sc.onload = () => res(window.THREAD_SNIP_LEVELS);
+      sc.onerror = () => { levelsPromise = null; rej(new Error('levels failed to load')); };
+      document.head.appendChild(sc);
+    });
+  }
+  return levelsPromise;
+}
+
 
 // ---------- sound ----------
 // The setting lives in the classic game's save so one toggle governs the
@@ -68,11 +84,17 @@ function play(level) {
   const lv = document.getElementById('snipLv');
   if (lv) lv.textContent = 'Level ' + level;
   show('play-snip');
-  startSnip(level);
+  startSnip(level, levels[level-1]);
 }
 
 document.getElementById('back-snip').onclick = () => { stopSnip(); show('home'); };
 document.getElementById('retry-snip').onclick = () => { if (current) startSnip(current); };
 
-renderLevels();
-sync().then(saved => { if (saved) renderLevels(); });
+
+ensureLevels().then(lvls => {
+  levels = lvls;
+  TOTAL = levels.length;
+  renderLevels();
+  sync().then(saved => { if (saved) renderLevels(); });
+});
+

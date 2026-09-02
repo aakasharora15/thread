@@ -4,7 +4,23 @@ import { Settings } from './settings.js';
 import { loadGame, recordWin, setSound } from './progress.js';
 import { sync, push } from './cloud.js';
 
-const TOTAL = 5;
+let TOTAL = 5;
+let levels = [];
+let levelsPromise = null;
+function ensureLevels() {
+  if (window.THREAD_LOOM_LEVELS) return Promise.resolve(window.THREAD_LOOM_LEVELS);
+  if (!levelsPromise) {
+    levelsPromise = new Promise((res, rej) => {
+      const sc = document.createElement('script');
+      sc.src = 'data/loom-levels.js';
+      sc.onload = () => res(window.THREAD_LOOM_LEVELS);
+      sc.onerror = () => { levelsPromise = null; rej(new Error('levels failed to load')); };
+      document.head.appendChild(sc);
+    });
+  }
+  return levelsPromise;
+}
+
 
 // ---------- sound ----------
 // The setting lives in the classic game's save so one toggle governs the
@@ -68,11 +84,17 @@ function play(level) {
   const lv = document.getElementById('loomLv');
   if (lv) lv.textContent = 'Level ' + level;
   show('play-loom');
-  startLoom(level);
+  startLoom(level, levels[level-1]);
 }
 
 document.getElementById('back-loom').onclick = () => { stopLoom(); show('home'); };
 document.getElementById('retry-loom').onclick = () => { if (current) startLoom(current); };
 
-renderLevels();
-sync().then(saved => { if (saved) renderLevels(); });
+
+ensureLevels().then(lvls => {
+  levels = lvls;
+  TOTAL = levels.length;
+  renderLevels();
+  sync().then(saved => { if (saved) renderLevels(); });
+});
+

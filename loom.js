@@ -9,46 +9,16 @@ const NS = 'http://www.w3.org/2000/svg';
 let currentLevel = 0;
 let state = { path: [], pegs: [], target: [] };
 
-const LEVELS = [
-  { // Level 1: Triangle
-    pegs: [{ x: 200, y: 150, id: 0 }, { x: 100, y: 350, id: 1 }, { x: 300, y: 350, id: 2 }],
-    target: [1, 2, 0, 1]
-  },
-  { // Level 2: Hourglass
-    pegs: [{ x: 100, y: 150, id: 0 }, { x: 300, y: 150, id: 1 }, { x: 100, y: 400, id: 2 }, { x: 300, y: 400, id: 3 }],
-    target: [0, 1, 2, 3, 0]
-  },
-  { // Level 3: Star
-    pegs: [
-      { x: 200, y: 100, id: 0 }, { x: 300, y: 400, id: 1 }, { x: 50, y: 200, id: 2 },
-      { x: 350, y: 200, id: 3 }, { x: 100, y: 400, id: 4 }
-    ],
-    target: [0, 1, 2, 3, 4, 0]
-  },
-  { // Level 4: Envelope
-    pegs: [
-      { x: 100, y: 200, id: 0 }, { x: 300, y: 200, id: 1 },
-      { x: 100, y: 400, id: 2 }, { x: 300, y: 400, id: 3 }, { x: 200, y: 100, id: 4 }
-    ],
-    target: [2, 0, 4, 1, 3, 2, 1, 0, 3]
-  },
-  { // Level 5: Hexagon Web
-    pegs: [
-      { x: 200, y: 100, id: 0 }, { x: 300, y: 150, id: 1 }, { x: 300, y: 350, id: 2 },
-      { x: 200, y: 400, id: 3 }, { x: 100, y: 350, id: 4 }, { x: 100, y: 150, id: 5 }
-    ],
-    target: [0, 2, 4, 0, 3, 1, 5, 3]
-  }
-];
+
 
 let threadGroup = null, pegGroup = null, capGroup = null;
 
-export function startLoom(level) {
+export function startLoom(level, lvl) {
   const container = document.getElementById('loom-container');
   if (!container) return;
   container.innerHTML = '';
 
-  const lvl = LEVELS[level - 1];
+  
   if (!lvl) return;
   currentLevel = level;
 

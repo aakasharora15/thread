@@ -8,13 +8,13 @@
 // Everything else, the level data and the artwork, never changes without its
 // filename changing, so it is served cache first and revalidated behind the
 // scenes.
-const CACHE = 'thread-v14';
+const CACHE = 'thread-v15';
 
 const SHELL = ['./', 'hub.html', 'index.html', 'snip.html', 'loom.html', 'styles.css',
   'logic.js', 'app.js', 'audio.js', 'toast.js', 'sync.js', 'config.js',
   'hub.js', 'nav.js', 'progress.js', 'settings.js', 'cloud.js',
   'snip.js', 'snip-app.js', 'loom.js', 'loom-app.js', 'manifest.webmanifest'];
-const ASSETS = SHELL.concat(['boards.js', 'mascot.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png']);
+const ASSETS = SHELL.concat(['boards.js', 'data/snip-levels.js', 'data/loom-levels.js', 'mascot.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png']);
 
 // Matter.js comes from a CDN. It is deliberately not precached: one failed
 // cross-origin fetch would reject the whole addAll and leave nothing cached at

@@ -8,45 +8,9 @@ const DESIGN_W = 400, DESIGN_H = 700;
 let engine, render, runner, teardown = null, retryTimer = null;
 let currentLevel = 0;
 
-const LEVELS = [
-  { // Level 1: Simple single cut to drop
-    anchors: [{ x: 200, y: 100 }],
-    spool: { x: 200, y: 300 },
-    strings: [{ a: 0, b: 'spool' }],
-    target: { x: 200, y: 550, r: 30 },
-    obstacles: []
-  },
-  { // Level 2: Pendulum swing
-    anchors: [{ x: 100, y: 100 }, { x: 300, y: 100 }],
-    spool: { x: 150, y: 300 },
-    strings: [{ a: 0, b: 'spool' }, { a: 1, b: 'spool' }],
-    target: { x: 300, y: 550, r: 30 },
-    obstacles: []
-  },
-  { // Level 3: Dual swing
-    anchors: [{ x: 100, y: 100 }, { x: 300, y: 200 }],
-    spool: { x: 200, y: 300 },
-    strings: [{ a: 0, b: 'spool' }, { a: 1, b: 'spool' }],
-    target: { x: 100, y: 600, r: 30 },
-    obstacles: []
-  },
-  { // Level 4: Avoid the blades
-    anchors: [{ x: 200, y: 100 }, { x: 350, y: 150 }],
-    spool: { x: 250, y: 250 },
-    strings: [{ a: 0, b: 'spool' }, { a: 1, b: 'spool' }],
-    target: { x: 200, y: 600, r: 30 },
-    obstacles: [{ x: 200, y: 450, w: 100, h: 20, isStatic: true, isBlade: true }]
-  },
-  { // Level 5: Double drop
-    anchors: [{ x: 100, y: 100 }, { x: 300, y: 100 }, { x: 200, y: 350 }],
-    spool: { x: 200, y: 200 },
-    strings: [{ a: 0, b: 'spool' }, { a: 1, b: 'spool' }, { a: 2, b: 'spool' }],
-    target: { x: 200, y: 650, r: 30 },
-    obstacles: []
-  }
-];
 
-export function startSnip(level) {
+
+export function startSnip(level, lvl) {
   stopSnip();                                  // never leave an old world running
 
   const container = document.getElementById('snip-container');
@@ -61,7 +25,7 @@ export function startSnip(level) {
   }
 
   currentLevel = level;
-  const lvl = LEVELS[level - 1];
+  
   if (!lvl) return;
 
   const { Engine, Render, Runner, Bodies, Composite, Constraint, Events, Vector } = Matter;
@@ -127,6 +91,7 @@ export function startSnip(level) {
   });
 
   Composite.add(engine.world, bodies);
+  Composite.add(engine.world, constraints);
   Render.run(render);
   runner = Runner.create();
   Runner.run(runner, engine);
