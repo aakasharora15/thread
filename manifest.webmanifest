@@ -1,7 +1,7 @@
 {
   "name": "Thread",
   "short_name": "Thread",
-  "description": "Three puzzle games about one line.",
+  "description": "A puzzle game about one line.",
   "start_url": "/index.html",
   "scope": "./",
   "display": "standalone",
@@ -9,6 +9,11 @@
   "background_color": "#FBE4EC",
   "theme_color": "#FBE4EC",
   "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",

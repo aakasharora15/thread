@@ -1,4 +1,3 @@
-import { Toast } from './toast.js';
 // Sign in, and keep each player's progress on the server.
 //
 // The local save is a write-ahead buffer: the game writes there first so it
@@ -6,7 +5,6 @@ import { Toast } from './toast.js';
 // Merging is monotonic (see mergeSaves in app.js), so two devices converge
 // instead of one overwriting the other.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const cfg = window.THREAD_CONFIG || {};
 const gate = document.getElementById('gate');

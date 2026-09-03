@@ -221,7 +221,7 @@ var L = window.ThreadLogic;
   }
   function startLevelNow(lane, level, snap) {
     var board = decode(lane, level);
-    var cd = lane === 'hard' ? countdownFor(level) : 0;
+    var cd = LANE[lane].clock === 'countdown' ? countdownFor(level) : 0;
     var valid = snap && snap.lane === lane && snap.level === level && snap.line && snap.line.length &&
       snap.line[0] === board.start && snap.line.every(function (c) { return board.open[c]; });
     S = {
@@ -305,7 +305,7 @@ var L = window.ThreadLogic;
   function timeUp() {
     S.over = true; clearInterval(timer);
     clearResume();
-    save.hard.streak = 0; persist();
+    if (S.lane === 'hard') { save.hard.streak = 0; persist(); }
     Audio.fail();
     overlay('Out of time', 'The board is still here. Retries are free and unlimited.', -1);
   }
@@ -442,7 +442,7 @@ var L = window.ThreadLogic;
     if (S.raf) { cancelAnimationFrame(S.raf); S.raf = 0; }
     S.flow = null;
     clearResume();
-    if (S.lane === 'hard') { save.hard.streak = 0; persist(); }
+    if (S.lane === 'hard') { if (S.lane === 'hard') { save.hard.streak = 0; persist(); } }
     Audio.fail();
     draw();
     overlay('Stuck', why + ' Rub out and try again, as often as you like.', -1);
