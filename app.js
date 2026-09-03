@@ -1,6 +1,6 @@
 
-import { Audio } from './audio.js';
-import { Toast } from './toast.js';
+import { Audio } from './audio.js?v=2';
+import { Toast } from './toast.js?v=2';
 
 // This file used to be wrapped in an IIFE. That wrapper is gone, so the whole
 // file is a module now and strict mode is automatic; the leftover directive
@@ -18,7 +18,7 @@ var L = window.ThreadLogic;
     if (!boardsPromise) {
       boardsPromise = new Promise(function (res, rej) {
         var sc = document.createElement('script');
-        sc.src = 'boards.js';
+        sc.src = 'boards.js?v=2';
         sc.onload = function () { BOARDS = window.THREAD_BOARDS; res(); };
         sc.onerror = function () { boardsPromise = null; rej(new Error('boards.js failed to load')); };
         document.head.appendChild(sc);
@@ -955,10 +955,7 @@ var L = window.ThreadLogic;
   if (profBack) profBack.addEventListener('click', function () { show('home'); });
   
   var whoEl = document.getElementById('who');
-  if (whoEl) whoEl.addEventListener('click', function () { 
-      window.Thread.renderProfile();
-      show('profile');
-  });
+  if (whoEl) whoEl.addEventListener('click', function () { try { window.Thread.renderProfile(); } catch(e) {} show('profile'); });
 
 
 

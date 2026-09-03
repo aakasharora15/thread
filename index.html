@@ -90,19 +90,15 @@ setTimeout(function () {
 
     <div class="lanes" role="group" aria-label="Difficulty">
       <button class="lane" data-lane="easy" aria-pressed="false">
-        <svg viewBox="0 0 26 22" width="24" height="20" fill="currentColor" style="display:block;margin:0 auto 4px;"><rect x="2" y="14" width="4" height="6" rx="1" /><rect x="8" y="10" width="4" height="10" rx="1" opacity="0.2"/><rect x="14" y="6" width="4" height="14" rx="1" opacity="0.2"/><rect x="20" y="2" width="4" height="18" rx="1" opacity="0.2"/></svg>
         <b>Easy</b>
       </button>
       <button class="lane" data-lane="medium" aria-pressed="false">
-        <svg viewBox="0 0 26 22" width="24" height="20" fill="currentColor" style="display:block;margin:0 auto 4px;"><rect x="2" y="14" width="4" height="6" rx="1" /><rect x="8" y="10" width="4" height="10" rx="1" /><rect x="14" y="6" width="4" height="14" rx="1" opacity="0.2"/><rect x="20" y="2" width="4" height="18" rx="1" opacity="0.2"/></svg>
         <b>Medium</b>
       </button>
       <button class="lane" data-lane="hard" aria-pressed="false">
-        <svg viewBox="0 0 26 22" width="24" height="20" fill="currentColor" style="display:block;margin:0 auto 4px;"><rect x="2" y="14" width="4" height="6" rx="1" /><rect x="8" y="10" width="4" height="10" rx="1" /><rect x="14" y="6" width="4" height="14" rx="1" /><rect x="20" y="2" width="4" height="18" rx="1" opacity="0.2"/></svg>
         <b>Hard</b>
       </button>
       <button class="lane" data-lane="pro" aria-pressed="false">
-        <svg viewBox="0 0 26 22" width="24" height="20" fill="currentColor" style="display:block;margin:0 auto 4px;"><rect x="2" y="14" width="4" height="6" rx="1" /><rect x="8" y="10" width="4" height="10" rx="1" /><rect x="14" y="6" width="4" height="14" rx="1" /><rect x="20" y="2" width="4" height="18" rx="1" /></svg>
         <b>Pro</b>
       </button>
     </div>
@@ -240,8 +236,8 @@ setTimeout(function () {
 </div>
 <script src="config.js"></script>
 <script src="logic.js"></script>
-<script type="module" src="app.js"></script>
-<script type="module" src="sync.js"></script>
+<script type="module" src="app.js?v=2"></script>
+<script type="module" src="sync.js?v=2"></script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 <div id="syncToast" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--cell); padding:8px 16px; border-radius:20px; font-size:12px; font-family:var(--body); opacity:0; pointer-events:none; transition:opacity 0.3s; z-index:999;">Syncing...</div>
 <canvas id="sparks" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999;"></canvas></body>

@@ -38,7 +38,7 @@
     out.sound = newer.sound;
     out.last = newer.last || a.last || b.last;
     out.cosmetics = newer.cosmetics || a.cosmetics || b.cosmetics || { color: 'default', audio: 'default' };
-    ['easy', 'medium', 'hard'].forEach(function (k) {
+    ['easy', 'medium', 'hard', 'pro'].forEach(function (k) {
       var x = a[k] || mkLane(), y = b[k] || mkLane();
       var lane = mergeProgress(x, y, mkLane);
       lane.streak = Math.max(x.streak || 0, y.streak || 0);
