@@ -85,9 +85,20 @@ var L = window.ThreadLogic;
   var RESUME_KEY = 'thread:resume:v1';
 
   var saveTimer = null;
+  // Wrapping is memoised and idempotent on purpose. Without the cache the get
+  // trap built a fresh Proxy on every nested read, so `save.easy !== save.easy`
+  // and a render that walks the lanes allocated one throwaway object per
+  // access. Without the WeakSet, re-wrapping an already-wrapped save would
+  // stack a second layer on every merge.
+  var proxyFor = new WeakMap();
+  var isProxy = new WeakSet();
+
   function createSaveProxy(obj) {
     if (typeof obj !== 'object' || obj === null) return obj;
-    return new Proxy(obj, {
+    if (isProxy.has(obj)) return obj;
+    var cached = proxyFor.get(obj);
+    if (cached) return cached;
+    var wrapped = new Proxy(obj, {
       get: function(target, prop) {
         var val = target[prop];
         if (typeof val === 'object' && val !== null) {
@@ -108,6 +119,9 @@ var L = window.ThreadLogic;
         return true;
       }
     });
+    proxyFor.set(obj, wrapped);
+    isProxy.add(wrapped);
+    return wrapped;
   }
 
   var save = createSaveProxy({ lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() });
@@ -968,8 +982,8 @@ var L = window.ThreadLogic;
     if (!confirm('Are you sure you want to clear all your saved progress? This cannot be undone.')) return;
     if (cloud && cloud.wipe) cloud.wipe();
     // keep the sound preference: it is a setting, not progress
-    save = { lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
-             easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() };
+    save = createSaveProxy({ lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
+             easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() });
     applyCosmetics();
     clearResume(); persist(); renderMap();
     if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
@@ -1048,7 +1062,9 @@ var L = window.ThreadLogic;
     getResume: function () { return resume; },
     applyRemote: function (remoteSave, remoteResume) {
       if (remoteSave) {
-        save = mergeSaves(save, remoteSave);
+        // mergeSaves returns a plain object. Without re-wrapping, the
+        // debounced autosave dies here - and this runs on every sign-in.
+        save = createSaveProxy(mergeSaves(save, remoteSave));
         store.set(SAVE_KEY, JSON.stringify(save));
       }
       if (remoteResume && (!resume || (remoteResume.at || 0) > (resume.at || 0))) {
@@ -1063,8 +1079,8 @@ var L = window.ThreadLogic;
       clearInterval(timer);
       S = null;
       Audio.stop();
-      save = { lane: 'medium', seq: 0, updatedAt: 0, cosmetics: { color: 'default', audio: 'default' },
-               easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() };
+      save = createSaveProxy({ lane: 'medium', seq: 0, updatedAt: 0, cosmetics: { color: 'default', audio: 'default' },
+               easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() });
       loaded = true;                         // signing out means to write this
       applyCosmetics();
       resume = null;
