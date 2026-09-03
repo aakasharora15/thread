@@ -216,7 +216,7 @@ async function signedIn(session) {
   const first = firstName(user);
   const name = first || user.email.split('@')[0];
   const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-  whoEl.innerHTML = '👤 Profile (' + capitalized + ')';
+
   whoEl.title = user.email;
   whoEl.hidden = false;
   
@@ -284,13 +284,13 @@ passEl.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
 emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') passEl.focus(); });
 swapBtn.addEventListener('click', () => { mode = mode === 'up' ? 'in' : 'up'; say(''); paint(); });
 
-document.getElementById('signOut').addEventListener('click', async () => {
+document.getElementById('profSignOut').addEventListener('click', async () => {
   clearTimeout(pushTimer);
   await flush();
   await supabase.auth.signOut();
   user = null;
   window.Thread.signedOut();
-  whoEl.textContent = '';
+  
   whoEl.removeAttribute('title');
   whoEl.hidden = true;
   passEl.value = '';

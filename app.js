@@ -962,12 +962,7 @@ var L = window.ThreadLogic;
     }
   });
 
-  var profSignOut = document.getElementById('profSignOut');
-  if (profSignOut) profSignOut.addEventListener('click', function() {
-    var signOutBtn = document.getElementById('signOut');
-    if (signOutBtn) signOutBtn.click();
-    show('home');
-  });
+
 
   document.getElementById('reset').addEventListener('click', function () { if (S) startLevel(S.lane, S.level); });
   document.getElementById('undo').addEventListener('click', function () { if (S && !S.over) rubOut(false); });
@@ -1078,6 +1073,9 @@ var L = window.ThreadLogic;
       resume = null;
       store.set(SAVE_KEY, '');
       store.set(RESUME_KEY, '');
+      worldPinned = false;
+      renderMap();
+      show('home');
     },
     show: show,
     renderProfile: function() {
