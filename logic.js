@@ -9,12 +9,6 @@
 
   function mkLane() { return { unlocked: 1, stars: {}, streak: 0, bank: 0 }; }
 
-  // Snip & Stitch and Loom Logic keep the same shape as a lane, minus the
-  // streak and bank the classic game tracks. One save holds all three games,
-  // so one account carries the whole app.
-  var GAMES = [];
-  function mkGame() { return { unlocked: 1, stars: {} }; }
-
   // Highest wins, level by level: the same rule the lanes play by.
   function mergeProgress(x, y, blank) {
     var out = blank();
@@ -44,9 +38,6 @@
       lane.streak = Math.max(x.streak || 0, y.streak || 0);
       lane.bank = Math.max(x.bank || 0, y.bank || 0);
       out[k] = lane;
-    });
-    GAMES.forEach(function (k) {
-      out[k] = mergeProgress(a[k] || mkGame(), b[k] || mkGame(), mkGame);
     });
     return out;
   }
@@ -125,6 +116,6 @@
     return bad;
   }
 
-  return { mkLane: mkLane, mkGame: mkGame, GAMES: GAMES, mergeSaves: mergeSaves,
+  return { mkLane: mkLane, mergeSaves: mergeSaves,
            decodeBoard: decodeBoard, validateBoard: validateBoard };
 });
