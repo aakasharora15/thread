@@ -32,8 +32,8 @@ export const Audio = (function () {
   function wake() {
     ensure();
     if (!ctx) return false;
-    if (ctx.state !== 'running') ctx.resume();
-    return ctx.state === 'running';
+    if (ctx.state !== 'running') ctx.resume().catch(function(){});
+    return true;
   }
 
   function blip(dest, freq, t, dur, vol, type) {
