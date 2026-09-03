@@ -108,8 +108,10 @@ var L = window.ThreadLogic;
       },
       set: function(target, prop, value) {
         target[prop] = value;
-        if (saveTimer) clearTimeout(saveTimer);
-        saveTimer = setTimeout(function() { persist(); }, 500);
+        if (prop !== 'seq' && prop !== 'updatedAt') {
+          if (saveTimer) clearTimeout(saveTimer);
+          saveTimer = setTimeout(function() { persist(); }, 500);
+        }
         return true;
       },
       deleteProperty: function(target, prop) {
