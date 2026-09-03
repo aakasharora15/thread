@@ -5,8 +5,8 @@ import { sync, account } from './cloud.js';
 
 function classicLine() {
   const save = loadClassic();
-  if (!save) return '200 levels · three lanes';
-  const lanes = ['easy', 'medium', 'hard'];
+  if (!save) return '200 levels · four lanes';
+  const lanes = ['easy', 'medium', 'hard', 'pro'];
   let stars = 0, best = 0;
   lanes.forEach(lane => {
     const st = save[lane];
@@ -14,7 +14,7 @@ function classicLine() {
     best = Math.max(best, (st.unlocked || 1) - 1);
     Object.keys(st.stars || {}).forEach(l => { stars += st.stars[l]; });
   });
-  if (!best && !stars) return '200 levels · three lanes';
+  if (!best && !stars) return '200 levels · four lanes';
   return best + ' cleared · ' + stars + (stars === 1 ? ' star' : ' stars');
 }
 

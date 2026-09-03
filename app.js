@@ -92,7 +92,7 @@ var L = window.ThreadLogic;
   var SAVE_KEY = 'thread:save:v1';
   var RESUME_KEY = 'thread:resume:v1';
 
-  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(),
+  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane(),
                 };
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
@@ -146,7 +146,7 @@ var L = window.ThreadLogic;
             save.last = v.last;
             save.seq = v.seq || 0;
             save.updatedAt = v.updatedAt || 0;
-            ['easy', 'medium', 'hard'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
+            ['easy', 'medium', 'hard', 'pro'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
             // The other two games live in this save as well. Copy them across
             // even though nothing on this page reads them: persist() writes the
             // whole object back, so anything dropped here is destroyed.
@@ -976,7 +976,7 @@ var L = window.ThreadLogic;
     if (cloud && cloud.wipe) cloud.wipe();
     // keep the sound preference: it is a setting, not progress
     save = { lane: save.lane, sound: save.sound, cosmetics: { color: 'default', audio: 'default' },
-             easy: mkLane(), medium: mkLane(), hard: mkLane(),  };
+             easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() };
     applyCosmetics();
     clearResume(); persist(); renderMap();
     if (window.Thread && window.Thread.renderProfile) window.Thread.renderProfile();
@@ -1071,7 +1071,7 @@ var L = window.ThreadLogic;
       S = null;
       Audio.stop();
       save = { lane: 'medium', seq: 0, updatedAt: 0, cosmetics: { color: 'default', audio: 'default' },
-               easy: mkLane(), medium: mkLane(), hard: mkLane(),  };
+               easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() };
       loaded = true;                         // signing out means to write this
       applyCosmetics();
       resume = null;
@@ -1090,7 +1090,7 @@ var L = window.ThreadLogic;
       // Unlocked looks. The buttons are hidden, not greyed, until they are
       // earned, so the profile never advertises a locked reward.
       var c = cosmetics();
-      var totalStars = ['easy', 'medium', 'hard'].reduce(function (acc, lane) {
+      var totalStars = ['easy', 'medium', 'hard', 'pro'].reduce(function (acc, lane) {
         return acc + countStars(save[lane]);
       }, 0);
       var LOCKS = { themePink: 20, themeGold: 50, audio8Bit: 100 };
@@ -1117,7 +1117,7 @@ var L = window.ThreadLogic;
         };
       });
 
-      stats.innerHTML = ['easy', 'medium', 'hard'].map(lane => {
+      stats.innerHTML = ['easy', 'medium', 'hard', 'pro'].map(lane => {
         const data = save[lane];
         const stars = countStars(data);
         const solved = countSolved(data);
