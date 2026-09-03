@@ -84,8 +84,7 @@ var L = window.ThreadLogic;
   var SAVE_KEY = 'thread:save:v1';
   var RESUME_KEY = 'thread:resume:v1';
 
-  var save = { lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane(),
-                };
+  var save = createSaveProxy({ lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() });
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
   Audio.init(function () { return { soundEnabled: save.sound !== false }; });
@@ -139,6 +138,7 @@ var L = window.ThreadLogic;
             save.seq = v.seq || 0;
             save.updatedAt = v.updatedAt || 0;
             ['easy', 'medium', 'hard', 'pro'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
+            save = createSaveProxy(save);
           }
         } catch(e){}
       }
@@ -225,8 +225,7 @@ var L = window.ThreadLogic;
     save.last = { lane: lane, level: level };
     world = worldOf(level); worldPinned = true;
     applyTheme(world);
-    persist();
-    document.getElementById('lvNum').textContent = level;
+        document.getElementById('lvNum').textContent = level;
     document.getElementById('lvLane').textContent = THEMES[worldOf(level)].n;
     document.getElementById('stripFill').style.width = (level / LEVELS * 100) + '%';
     document.getElementById('sLane').textContent = LANE[lane].name;
@@ -469,8 +468,7 @@ var L = window.ThreadLogic;
       if (clean) { st.streak++; if (st.streak % 5 === 0) st.bank = Math.min(3, st.bank + 1); }
       else st.streak = 0;
     }
-    persist();
-    var body = clean
+        var body = clean
       ? 'Clean solve in ' + fmt(S.elapsed) + '. Target was ' + fmt(par) + '.'
       : 'Solved in ' + fmt(S.elapsed) + ', with ' + (S.added - (S.board.cells - 1)) + ' extra squares drawn. A solve with nothing rubbed out earns the second dot.';
     haptic([15, 50, 15]);
@@ -1083,8 +1081,7 @@ var L = window.ThreadLogic;
         b.classList.toggle('on', c[kind] === b.dataset[kind]);
         b.onclick = function () {
           c[kind] = b.dataset[kind];
-          persist();
-          applyCosmetics();
+                    applyCosmetics();
           window.Thread.renderProfile();
         };
       });
