@@ -95,7 +95,7 @@ export async function push() {
     if (error) throw error;
     writeLocal(merged);
   } catch (e) {
-    Toast.show('Could not save to your account: ' + (e.message || e), true);
+    console.log('Could not save to your account: ' + (e.message || e), true);
   }
 }
 

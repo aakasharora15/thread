@@ -84,7 +84,7 @@ const cloud = {
       } catch (e) {
         // leave forceOverwrite set so the next push still overwrites
         console.error('[Wipe Error]', e);
-        Toast.show('Could not clear the server copy: ' + (e.message || e), true);
+        console.log('Could not clear the server copy: ' + (e.message || e), true);
       }
       wipePromise = null;
     }
@@ -95,7 +95,7 @@ async function flush() {
   if (wipePromise) await wipePromise;
   if (!user || !pending) return;
   pending = false;
-  Toast.show('Syncing...');
+  console.log('Syncing...');
   
   const local = window.Thread.getSave();
   const localResume = window.Thread.getResume();
@@ -125,9 +125,9 @@ async function flush() {
   } catch (e) {
     pending = true;                        // try again on the next change
     console.error('[Sync Error]', e);
-    Toast.show('Sync failed: ' + e.message, true);
+    console.log('Sync failed: ' + e.message, true);
   } finally {
-    Toast.hide();
+    
   }
 }
 
@@ -191,7 +191,6 @@ async function signedIn(session) {
   whoEl.hidden = false;
   
   gate.classList.add('done');
-  showSplash(capitalized);                        // greets by name, or just the artwork
   window.Thread.setCloud(cloud);
   try {
     await window.Thread.boot();
