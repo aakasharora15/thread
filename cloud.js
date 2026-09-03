@@ -11,7 +11,7 @@
 // time the player signs in, because mergeSaves only ever moves progress
 // forward.
 
-import { Toast } from './toast.js';
+
 import { CLASSIC_KEY, loadClassic } from './progress.js';
 
 const cfg = window.THREAD_CONFIG || {};

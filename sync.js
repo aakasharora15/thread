@@ -1,4 +1,4 @@
-import { Toast } from './toast.js';
+
 // Sign in, and keep each player's progress on the server.
 //
 // The local save is a write-ahead buffer: the game writes there first so it
