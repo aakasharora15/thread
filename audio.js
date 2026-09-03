@@ -13,6 +13,7 @@ export const Audio = (function () {
   var audioTheme = 'sine'; // Supports 'sine' (default) and 'square' (retro 8-bit)
 
   let getConfig = () => ({ soundEnabled: true });
+  function vibe(ms) { if (navigator.vibrate) try { navigator.vibrate(ms); } catch(e){} }
 
   function ensure() {
     if (ctx) return ctx;
@@ -87,15 +88,21 @@ export const Audio = (function () {
     playing: function () { return playing; },
     step: function (k) {
       if (!on() || !wake()) return;
-      blip(sfxBus, SCALE[k % 5] * 2, ctx.currentTime, 0.13, 0.13, 'triangle');
+      vibe(10);
+      var note = SCALE[k % SCALE.length];
+      var oct = Math.floor(k / SCALE.length);
+      var mult = Math.pow(2, oct % 3);
+      blip(sfxBus, note * mult, ctx.currentTime, 0.13, 0.13, 'triangle');
     },
     erase: function () {
       if (!on() || !wake()) return;
+      vibe(15);
       blip(sfxBus, 300, ctx.currentTime, 0.11, 0.09, audioTheme);
     },
     mark: function (n) {
       if (!on() || !wake()) return;
       var t = ctx.currentTime;
+      vibe([15, 30, 15]);
       blip(sfxBus, SCALE[n % 5] * 2, t, 0.2, 0.16, audioTheme);
       blip(sfxBus, SCALE[(n + 2) % 5] * 4, t + 0.09, 0.28, 0.1, audioTheme);
     },
@@ -103,17 +110,20 @@ export const Audio = (function () {
       if (!on() || !wake()) return;
       var t = ctx.currentTime;
       [0, 2, 4, 5].forEach(function (k, i) {
+        vibe([30, 50, 30, 50, 30]);
         blip(sfxBus, SCALE[k] * 2, t + i * 0.11, 0.5, 0.15, 'triangle');
       });
     },
     fail: function () {
       if (!on() || !wake()) return;
       var t = ctx.currentTime;
+      vibe([50, 100, 50]);
       blip(sfxBus, 330, t, 0.3, 0.12, audioTheme);
       blip(sfxBus, 247, t + 0.16, 0.5, 0.1, audioTheme);
     },
     blocked: function () {
       if (!on() || !wake()) return;
+      vibe(30);
       blip(sfxBus, 180, ctx.currentTime, 0.09, 0.08, 'square');
     }
   };
