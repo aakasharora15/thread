@@ -8,10 +8,10 @@
 // Everything else, the level data and the artwork, never changes without its
 // filename changing, so it is served cache first and revalidated behind the
 // scenes.
-const CACHE = 'thread-v28';
+const CACHE = 'thread-v29';
 
-const SHELL = ['./', 'index.html', 'styles.css?v=2',
-  'logic.js?v=4', 'app.js?v=3', 'audio.js?v=2', 'sync.js?v=2', 'config.js',
+const SHELL = ['./', 'index.html', 'styles.css?v=3',
+  'logic.js?v=4', 'app.js?v=4', 'audio.js?v=2', 'sync.js?v=2', 'config.js',
   'progress.js?v=4', 'cloud.js?v=2', 'manifest.webmanifest'];
 const ASSETS = SHELL.concat(['boards.js?v=2', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png']);
 

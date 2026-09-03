@@ -59,15 +59,7 @@ var L = window.ThreadLogic;
   ];
   function worldOf(level) { return Math.floor((level - 1) / 10); }
   function applyTheme(i) {
-    var th = THEMES[i], r = document.documentElement.style;
-    r.setProperty('--ground', th.g);
-    r.setProperty('--cream', th.c);
-    r.setProperty('--mint', th.m);
-    r.setProperty('--thread', th.t);
-    r.setProperty('--thread-core', th.k);
-    r.setProperty('--gold', th.o);
-    r.setProperty('--grad', th.gr);
-    tintLogo(th.t);
+    document.documentElement.className = 'theme-' + i;
   }
   function tintLogo(colour) {
     var marks = document.querySelectorAll('.wordmark, .logo svg');
@@ -383,19 +375,19 @@ var L = window.ThreadLogic;
   function extend(to) {
     S.hintAt = null;
     var head = S.line[S.line.length - 1];
-    if (!legal(head, to)) return false;
+    if (!legal(head, to)) { if (navigator.vibrate) navigator.vibrate([15]); return false; }
     if (LANE[S.lane].guard) {
       var cpTo = S.board.cp[to];
       if (cpTo !== 0 && cpTo !== nextNumber()) {
-        say('Number ' + nextNumber() + ' comes first.'); Audio.blocked(); return false;
+        say('Number ' + nextNumber() + ' comes first.'); Audio.blocked(); if (navigator.vibrate) navigator.vibrate([20]); return false;
       }
       var trial = S.line.concat([to]);
-      if (!feasible(trial)) { say('That would strand a square. Try another way.'); Audio.blocked(); return false; }
+      if (!feasible(trial)) { say('That would strand a square. Try another way.'); Audio.blocked(); if (navigator.vibrate) navigator.vibrate([20]); return false; }
     }
     var prev = S.line[S.line.length - 1];
     S.line.push(to); S.added++;
     flowTo(prev, false);
-    if (S.board.cp[to]) Audio.mark(S.board.cp[to]); else Audio.step(S.line.length);
+    if (S.board.cp[to]) { if (navigator.vibrate) navigator.vibrate(10); Audio.mark(S.board.cp[to]); } else Audio.step(S.line.length);
     afterMove();
     return true;
   }
