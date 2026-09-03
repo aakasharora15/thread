@@ -50,24 +50,7 @@
   </div>
 </section>
 
-<!-- ============ splash ============ -->
-<section class="splash" id="splash">
-  <img id="splashArt" src="mascot.png" alt="Thread" width="1080" height="1920">
-  <p class="splashname" id="splashName" hidden></p>
-</section>
 
-<script>
-// sync.js owns the splash, but it is a module that pulls its client from a
-// CDN. If that never arrives, nothing else ever takes the artwork down. This
-// is the backstop: later than sync.js's own guard, so it only fires when
-// sync.js is not there to fire its own.
-setTimeout(function () {
-  var s = document.getElementById('splash');
-  if (!s || s.hidden) return;
-  s.classList.add('go');
-  setTimeout(function () { s.hidden = true; }, 470);
-}, 8000);
-</script>
 
 <div class="wrap">
   <!-- ================= home ================= -->

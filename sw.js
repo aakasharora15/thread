@@ -8,7 +8,7 @@
 // Everything else, the level data and the artwork, never changes without its
 // filename changing, so it is served cache first and revalidated behind the
 // scenes.
-const CACHE = 'thread-v24';
+const CACHE = 'thread-v25';
 
 const SHELL = ['./', 'index.html', 'styles.css?v=2',
   'logic.js?v=2', 'app.js?v=2', 'audio.js?v=2', 'toast.js?v=2', 'sync.js?v=2', 'config.js',
