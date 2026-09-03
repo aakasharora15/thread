@@ -216,7 +216,7 @@ async function signedIn(session) {
   const first = firstName(user);
   const name = first || user.email.split('@')[0];
   const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-  whoEl.textContent = 'Hello ' + capitalized;
+  whoEl.innerHTML = '👤 Profile (' + capitalized + ')';
   whoEl.title = user.email;
   whoEl.hidden = false;
   

@@ -1,4 +1,4 @@
-import { initNav } from './nav.js';
+
 import { Audio } from './audio.js';
 import { Toast } from './toast.js';
 
@@ -31,7 +31,8 @@ var L = window.ThreadLogic;
   var LANE = {
     easy:   { name: 'Easy',   hints: 3, undoCap: Infinity, guard: true,  highlight: true,  clock: 'none',      parBase: 1.6 },
     medium: { name: 'Medium', hints: 1, undoCap: Infinity, guard: false, highlight: false, clock: 'up',        parBase: 2.0 },
-    hard:   { name: 'Hard',   hints: 0, undoCap: 5,        guard: false, highlight: false, clock: 'countdown', parBase: 2.4 }
+    hard:   { name: 'Hard',   hints: 0, undoCap: 5,        guard: false, highlight: false, clock: 'countdown', parBase: 2.4 },
+    pro:    { name: 'Pro',    hints: 0, undoCap: 0,        guard: false, highlight: false, clock: 'countdown', parBase: 3.0 }
   };
   // Twenty worlds of ten levels. Each one repaints the whole game.
   var THEMES = [
@@ -807,7 +808,7 @@ var L = window.ThreadLogic;
   }
 
   function renderMap() {
-    initNav();
+
     var lane = save.lane, st = save[lane], map = document.getElementById('map');
     if (!worldPinned) world = worldOf(st.unlocked);
     applyTheme(world);

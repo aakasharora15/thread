@@ -8,11 +8,11 @@
 // Everything else, the level data and the artwork, never changes without its
 // filename changing, so it is served cache first and revalidated behind the
 // scenes.
-const CACHE = 'thread-v18';
+const CACHE = 'thread-v20';
 
-const SHELL = ['./', 'hub.html', 'index.html', 'styles.css',
+const SHELL = ['./', 'index.html', 'styles.css',
   'logic.js', 'app.js', 'audio.js', 'toast.js', 'sync.js', 'config.js',
-  'hub.js', 'nav.js', 'progress.js', 'settings.js', 'cloud.js', 'manifest.webmanifest'];
+  'progress.js', 'settings.js', 'cloud.js', 'manifest.webmanifest'];
 const ASSETS = SHELL.concat(['boards.js', 'mascot.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png']);
 
 // Matter.js comes from a CDN. It is deliberately not precached: one failed
@@ -54,7 +54,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, copy));
         }
         return res;
-      }).catch(() => caches.match(e.request).then(hit => hit || caches.match('hub.html')))
+      }).catch(() => caches.match(e.request).then(hit => hit || caches.match('index.html')))
     );
     return;
   }

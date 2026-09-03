@@ -2,7 +2,7 @@
   "name": "Thread",
   "short_name": "Thread",
   "description": "Three puzzle games about one line.",
-  "start_url": "./hub.html",
+  "start_url": "/index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
