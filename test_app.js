@@ -1,6 +1,4 @@
 
-import { Audio } from './audio.js';
-import { Toast } from './toast.js';
 
 // This file used to be wrapped in an IIFE. That wrapper is gone, so the whole
 // file is a module now and strict mode is automatic; the leftover directive

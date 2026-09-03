@@ -45,13 +45,14 @@
   .mast h1 span { display: block; font-size: .26em; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--mint); margin-top: 16px; transition: color .4s ease; }
   .mast p { max-width: 42ch; margin: 14px 0 0; color: var(--ink-soft); line-height: 1.5; font-size: 14.5px; }
 
-  .lanes { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 8px; margin: 22px 16px 12px 16px; overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+  .lanes { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 6px; margin: 22px 16px 12px 16px; }
 .lanes::-webkit-scrollbar { display: none; }
 
   .lane {
-    padding: 14px 16px; border-radius: 20px; background: var(--panel); box-shadow: var(--shadow-s);
-    text-align: center; flex: 1 0 auto; scroll-snap-align: start;
+    padding: 10px 4px; border-radius: 16px; background: var(--panel); box-shadow: var(--shadow-s);
+    text-align: center; flex: 1 1 0; min-width: 0;
   }
+  .lanes .lane b { font-size: 14px; }
   .lane b { font-family: var(--display); font-size: 18px; font-weight: 600; display: block; }
   .lane[aria-pressed="true"] { background: var(--ink); color: #fff; box-shadow: var(--shadow); }
 
