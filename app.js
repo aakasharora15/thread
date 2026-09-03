@@ -84,6 +84,32 @@ var L = window.ThreadLogic;
   var SAVE_KEY = 'thread:save:v1';
   var RESUME_KEY = 'thread:resume:v1';
 
+  var saveTimer = null;
+  function createSaveProxy(obj) {
+    if (typeof obj !== 'object' || obj === null) return obj;
+    return new Proxy(obj, {
+      get: function(target, prop) {
+        var val = target[prop];
+        if (typeof val === 'object' && val !== null) {
+          return createSaveProxy(val);
+        }
+        return val;
+      },
+      set: function(target, prop, value) {
+        target[prop] = value;
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(function() { persist(); }, 500);
+        return true;
+      },
+      deleteProperty: function(target, prop) {
+        delete target[prop];
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(function() { persist(); }, 500);
+        return true;
+      }
+    });
+  }
+
   var save = createSaveProxy({ lane: 'medium', seq: 0, updatedAt: 0, easy: mkLane(), medium: mkLane(), hard: mkLane(), pro: mkLane() });
   var resume = null;
   var cloud = null;                 // set by sync.js once someone is signed in
