@@ -8,7 +8,7 @@ import { Audio } from './audio.js?v=2';
 // is kept for now because de-indenting 1,400 lines would bury every real
 // change in the diff.
 var L = window.ThreadLogic;
-  var mkLane = L.mkLane, mkGame = L.mkGame, mergeSaves = L.mergeSaves, GAMES = L.GAMES;
+  var mkLane = L.mkLane, mergeSaves = L.mergeSaves;
   // boards.js is 89 KB of level data that the home screen never needs, so it
   // is fetched on demand and then warmed in the background after boot.
   var BOARDS = window.THREAD_BOARDS || null;
@@ -140,10 +140,6 @@ var L = window.ThreadLogic;
             save.seq = v.seq || 0;
             save.updatedAt = v.updatedAt || 0;
             ['easy', 'medium', 'hard', 'pro'].forEach(function (k) { if (v[k]) save[k] = Object.assign(mkLane(), v[k]); });
-            // The other two games live in this save as well. Copy them across
-            // even though nothing on this page reads them: persist() writes the
-            // whole object back, so anything dropped here is destroyed.
-            GAMES.forEach(function (k) { save[k] = Object.assign(mkGame(), v[k] || {}); });
           }
         } catch(e){}
       }
