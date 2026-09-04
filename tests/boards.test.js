@@ -63,3 +63,46 @@ test('the time target tracks the board, not the level number', () => {
     assert.ok(Math.max(...pars) < 330, lane + ': a target of ' + Math.max(...pars) + 's is free');
   }
 });
+
+// The Pro lane once shipped as a single boustrophedon - down, right one, up,
+// right one - with no walls at all: 200 levels cut from 15 distinct puzzles,
+// and a lane that took less thought than Easy. Nothing caught it because every
+// board was individually valid. These check the shape of the difficulty, not
+// just the legality of each board.
+
+function turnRate(raw) {
+  const d = raw.d;
+  let t = 0;
+  for (let i = 1; i < d.length; i++) if (d[i] !== d[i - 1]) t++;
+  return t / (d.length + 1);
+}
+const median = xs => xs.slice().sort((a, b) => a - b)[xs.length >> 1];
+
+test('no lane is built from a handful of repeated solutions', () => {
+  for (const lane of ['easy', 'medium', 'hard', 'pro']) {
+    const shapes = new Set(BOARDS[lane].map(b => b.d)).size;
+    assert.ok(shapes > BOARDS[lane].length / 2,
+      lane + ' has only ' + shapes + ' distinct solutions across ' + BOARDS[lane].length + ' levels');
+  }
+});
+
+test('the harder the lane, the more the line has to turn', () => {
+  const rates = ['easy', 'medium', 'hard', 'pro'].map(l => median(BOARDS[l].map(turnRate)));
+  const pro = rates[3];
+  assert.ok(pro > 0.5, 'Pro turns on only ' + pro.toFixed(3) + ' of its cells; a serpentine scores about 0.16');
+  assert.ok(pro >= Math.max(...rates.slice(0, 3)),
+    'Pro is straighter than an easier lane: ' + rates.map(r => r.toFixed(3)).join(', '));
+});
+
+test('Pro is walled at least as tightly as Hard', () => {
+  const density = lane => median(BOARDS[lane].map(b => b.w.length / (b.r * b.c)));
+  const pro = density('pro'), hard = density('hard');
+  assert.ok(pro > 0, 'Pro has no walls at all, so nothing constrains the line');
+  assert.ok(pro >= hard, 'Pro walls ' + pro.toFixed(2) + '/cell vs Hard ' + hard.toFixed(2) + '/cell');
+});
+
+test('Pro leaves the longest stretches between numbers', () => {
+  const gap = lane => median(BOARDS[lane].map(b => (b.d.length + 1) / b.q.length));
+  assert.ok(gap('pro') > gap('hard'),
+    'Pro is guided more closely than Hard: ' + gap('pro').toFixed(1) + ' vs ' + gap('hard').toFixed(1) + ' cells per number');
+});
